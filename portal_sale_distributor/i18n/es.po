@@ -3,15 +3,14 @@
 # 	* portal_sale_distributor
 # 
 # Translators:
-# Nicolas Col, 2024
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-24 18:07+0000\n"
-"PO-Revision-Date: 2024-04-29 14:55+0000\n"
+"POT-Creation-Date: 2024-11-28 14:53+0000\n"
+"PO-Revision-Date: 2024-11-14 16:04+0000\n"
 "Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
@@ -33,21 +32,34 @@ msgstr "Agregar envío"
 #. module: portal_sale_distributor
 #. odoo-python
 #: code:addons/portal_sale_distributor/controllers/portal_account.py:0
-#, python-format
 msgid "All"
 msgstr "Todos"
 
 #. module: portal_sale_distributor
-#. odoo-python
-#: code:addons/portal_sale_distributor/controllers/portal_account.py:0
-#, python-format
-msgid "Bills"
-msgstr "Facturas"
+#: model:ir.model.fields,help:portal_sale_distributor.field_product_document__attached_on_sale
+msgid ""
+"Allows you to share the document with your customers within a sale.\n"
+"Leave it empty if you don't want to share this document with sales customer.\n"
+"On quote: the document will be sent to and accessible by customers at any time.\n"
+"e.g. this option can be useful to share Product description files.\n"
+"On order confirmation: the document will be sent to and accessible by customers.\n"
+"e.g. this option can be useful to share User Manual or digital content bought on ecommerce. \n"
+"Inside quote: The document will be included in the pdf of the quotation and sale order between the header pages and the quote table. "
+msgstr ""
+"Le permite compartir el documento con sus clientes dentro de una venta.\n"
+"Déjelo vacío si no desea compartir este documento con su cliente.\n"
+"En el presupuesto: los clientes recibirán el documento y podrán visualizarlo en cualquier momento.\n"
+"Esta opción puede ser útil, por ejemplo, para compartir archivos de descripción del producto.\n"
+"En la confirmación de la orden: los clientes recibirán el documento y podrán visualizarlo.\n"
+"Esta opción puede ser útil, por ejemplo, para compartir el manual de usuario o algún contenido digital que se haya adquirido mediante comercio electrónico. \n"
+"Dentro del presupuesto: el documento se incluirá en el PDF del presupuesto\n"
+"y del pedido de venta entre el encabezado y la tabla de presupuesto."
 
 #. module: portal_sale_distributor
-#: model:ir.ui.menu,name:portal_sale_distributor.catalog_menu
-msgid "Catalog"
-msgstr "Catalogo"
+#. odoo-python
+#: code:addons/portal_sale_distributor/controllers/portal_account.py:0
+msgid "Bills"
+msgstr "Facturas"
 
 #. module: portal_sale_distributor
 #: model:ir.model,name:portal_sale_distributor.model_res_config_settings
@@ -60,9 +72,25 @@ msgid "Confirm Sale"
 msgstr "Confirmar Venta"
 
 #. module: portal_sale_distributor
+#: model:ir.model,name:portal_sale_distributor.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: portal_sale_distributor
+#: model:ir.model.fields,field_description:portal_sale_distributor.field_res_partner__credit_limit
+#: model:ir.model.fields,field_description:portal_sale_distributor.field_res_users__credit_limit
+msgid "Credit Limit"
+msgstr "Crédito concedido"
+
+#. module: portal_sale_distributor
+#: model:ir.model.fields,help:portal_sale_distributor.field_res_partner__credit_limit
+#: model:ir.model.fields,help:portal_sale_distributor.field_res_users__credit_limit
+msgid "Credit limit specific to this partner."
+msgstr "Crédito concedido específico para este contacto."
+
+#. module: portal_sale_distributor
 #. odoo-python
 #: code:addons/portal_sale_distributor/models/sale_order.py:0
-#, python-format
 msgid ""
 "El pedido no puede ser confirmado por %s porque contiene excepciones, debe "
 "ser revisado por un administrador"
@@ -78,7 +106,6 @@ msgstr "Hilo de correo electrónico"
 #. module: portal_sale_distributor
 #. odoo-python
 #: code:addons/portal_sale_distributor/controllers/portal_account.py:0
-#, python-format
 msgid "Invoices"
 msgstr "Facturas"
 
@@ -101,16 +128,14 @@ msgstr "Fecha límite de la siguiente actividad"
 #. module: portal_sale_distributor
 #. odoo-python
 #: code:addons/portal_sale_distributor/controllers/portal_account.py:0
-#, python-format
 msgid "Open"
 msgstr "Abierto"
 
 #. module: portal_sale_distributor
 #. odoo-python
 #: code:addons/portal_sale_distributor/models/sale_order.py:0
-#, python-format
 msgid "Pedido confirmado por %s"
-msgstr "Pedido confirmado por %s"
+msgstr ""
 
 #. module: portal_sale_distributor
 #: model:ir.module.category,name:portal_sale_distributor.category_portal_distributor
@@ -119,19 +144,29 @@ msgid "Portal Distributor"
 msgstr "Portal - Distributor"
 
 #. module: portal_sale_distributor
+#: model:ir.model,name:portal_sale_distributor.model_product_pricelist_item
+msgid "Pricelist Rule"
+msgstr "Regla de la lista de precios"
+
+#. module: portal_sale_distributor
+#: model:ir.model,name:portal_sale_distributor.model_product_document
+msgid "Product Document"
+msgstr "Documento del producto"
+
+#. module: portal_sale_distributor
 #: model:ir.model,name:portal_sale_distributor.model_product_product
 msgid "Product Variant"
 msgstr "Variante de producto"
 
 #. module: portal_sale_distributor
-#: model:ir.actions.act_window,name:portal_sale_distributor.action_product_template_portal_tree
-msgid "Products"
-msgstr "Productos"
-
-#. module: portal_sale_distributor
 #: model:ir.ui.menu,name:portal_sale_distributor.quotations
 msgid "Quotations"
 msgstr "Presupuestos"
+
+#. module: portal_sale_distributor
+#: model:ir.model.fields,field_description:portal_sale_distributor.field_product_document__attached_on_sale
+msgid "Sale : Visible at"
+msgstr "Ventas: visible en"
 
 #. module: portal_sale_distributor
 #: model:ir.ui.menu,name:portal_sale_distributor.sale_menu

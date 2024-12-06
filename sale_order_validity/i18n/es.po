@@ -4,15 +4,14 @@
 # 
 # Translators:
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
-# Franco Leyes, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 19:20+0000\n"
-"PO-Revision-Date: 2024-01-17 11:38+0000\n"
-"Last-Translator: Franco Leyes, 2024\n"
+"POT-Creation-Date: 2024-11-27 16:45+0000\n"
+"PO-Revision-Date: 2024-11-14 19:10+0000\n"
+"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -26,18 +25,19 @@ msgid ""
 "Creation date of draft/sent orders,\n"
 "Confirmation date of confirmed orders."
 msgstr ""
-"Fecha de creación del borrador/envío de los pedidos,\n"
+"Fecha de creación de los presupuestos borrador o enviados,\n"
 "Fecha de confirmación de los pedidos confirmados."
 
 #. module: sale_order_validity
 #: model:ir.model.fields,help:sale_order_validity.field_sale_order__validity_date
 msgid "Date until when quotation is valid"
-msgstr "Fecha hasta cuando es válido el presupuesto."
+msgstr ""
+"Validez del pedido, después de eso no podrá firmar y pagar el presupuesto."
 
 #. module: sale_order_validity
 #: model:ir.model.fields,field_description:sale_order_validity.field_sale_order__validity_date
 msgid "Expiration"
-msgstr "Expiración"
+msgstr "Vencimiento"
 
 #. module: sale_order_validity
 #: model:ir.model.fields,field_description:sale_order_validity.field_sale_order__date_order
@@ -72,14 +72,6 @@ msgstr "Días de validez"
 #. module: sale_order_validity
 #. odoo-python
 #: code:addons/sale_order_validity/models/sale_order.py:0
-#, python-format
-msgid "Warning!"
-msgstr "Precaución!"
-
-#. module: sale_order_validity
-#. odoo-python
-#: code:addons/sale_order_validity/models/sale_order.py:0
-#, python-format
 msgid ""
 "You can not confirm this quotation as it was valid until %s! Please update "
 "validity."
@@ -90,7 +82,6 @@ msgstr ""
 #. module: sale_order_validity
 #. odoo-python
 #: code:addons/sale_order_validity/models/sale_order.py:0
-#, python-format
 msgid ""
 "You can not set more validity days than the configured on the company (%i "
 "days)."

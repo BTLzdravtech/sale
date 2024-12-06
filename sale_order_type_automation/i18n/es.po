@@ -3,17 +3,14 @@
 # 	* sale_order_type_automation
 # 
 # Translators:
-# Franco Leyes, 2024
-# Nicolas Col, 2024
-# Juan Rivero <jr@adhoc.com.ar>, 2024
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 13:47+0000\n"
-"PO-Revision-Date: 2024-04-11 17:17+0000\n"
+"POT-Creation-Date: 2024-12-05 15:22+0000\n"
+"PO-Revision-Date: 2024-11-21 14:40+0000\n"
 "Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
@@ -66,7 +63,6 @@ msgstr "Secuencia de entrada"
 #. module: sale_order_type_automation
 #. odoo-python
 #: code:addons/sale_order_type_automation/models/sale_order_type.py:0
-#, python-format
 msgid "If you choose a Payment automation, Payment Journal is required"
 msgstr "Si elige una automatización de pagos, se requiere el Diario de pagos"
 
@@ -88,7 +84,6 @@ msgstr "Empresa de facturas"
 #. module: sale_order_type_automation
 #. odoo-python
 #: code:addons/sale_order_type_automation/models/sale_order_type.py:0
-#, python-format
 msgid "Invoice Journal and Payment Journal must be of the same company"
 msgstr ""
 "El diario de facturas y el diario de pagos deben ser de la misma empresa"
@@ -201,14 +196,12 @@ msgstr "Bloquear OV al confirmar"
 #. module: sale_order_type_automation
 #. odoo-python
 #: code:addons/sale_order_type_automation/models/sale_order_type.py:0
-#, python-format
 msgid "The company of the sequence and the warehouse must be the same"
 msgstr "La empresa de la secuencia y el almacén deben ser la misma"
 
 #. module: sale_order_type_automation
 #. odoo-python
 #: code:addons/sale_order_type_automation/models/sale_order.py:0
-#, python-format
 msgid ""
 "The following products are not available, we suggest to check stock or to use a sale type that force availability.\n"
 "Products:\n"
@@ -260,7 +253,6 @@ msgstr "Validar pago"
 #. module: sale_order_type_automation
 #. odoo-python
 #: code:addons/sale_order_type_automation/models/sale_order.py:0
-#, python-format
 msgid ""
 "We couldn't validate the automatically created invoices (ids %s), you will "
 "need to validate them manually. This is what we get: %s"
