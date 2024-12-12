@@ -3,15 +3,14 @@
 # 	* sale_gathering
 # 
 # Translators:
-# Franco Leyes, 2024
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 21:44+0000\n"
-"PO-Revision-Date: 2024-06-27 14:51+0000\n"
+"POT-Creation-Date: 2024-12-11 13:50+0000\n"
+"PO-Revision-Date: 2024-12-10 16:22+0000\n"
 "Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +62,6 @@ msgstr ""
 #. module: sale_gathering
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
-#, python-format
 msgid ""
 "Before adding quantities, you need to create and confirm the gathering "
 "invoice."
@@ -72,7 +70,6 @@ msgstr ""
 #. module: sale_gathering
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
-#, python-format
 msgid "Cannot add discounts to redeemed products."
 msgstr "No se pueden añadir descuentos a productos canjeados."
 
@@ -89,7 +86,6 @@ msgstr "Crear factura"
 #. module: sale_gathering
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
-#, python-format
 msgid "Discounts cannot be added to downpayments."
 msgstr "Los descuentos no pueden añadirse a los anticipos."
 
@@ -133,7 +129,6 @@ msgstr "Es Acopio?"
 #. module: sale_gathering
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
-#, python-format
 msgid ""
 "It is not possible to add discounts once the product has been invoiced or "
 "delivered."
@@ -166,6 +161,11 @@ msgid "Quantity Invoiced"
 msgstr ""
 
 #. module: sale_gathering
+#: model_terms:ir.ui.view,arch_db:sale_gathering.report_saleorder_document_gathering
+msgid "Quantity Returned"
+msgstr ""
+
+#. module: sale_gathering
 #: model:ir.model,name:sale_gathering.model_ir_actions_report
 msgid "Report Action"
 msgstr "Acción de informe"
@@ -188,7 +188,6 @@ msgstr "Línea de pedido de venta"
 #. module: sale_gathering
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order.py:0
-#, python-format
 msgid ""
 "The gathering balance will be negative (%s), you cannot make this "
 "modification to the order. Order: %s"
@@ -199,7 +198,6 @@ msgstr ""
 #. module: sale_gathering
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
-#, python-format
 msgid ""
 "You cannot modify the discount of the gathering lines once the sale has been"
 " confirmed.\n"

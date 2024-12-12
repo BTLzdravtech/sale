@@ -4,21 +4,30 @@
 # 
 # Translators:
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
-# manucep, 2024
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0+e\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-26 12:10+0000\n"
-"PO-Revision-Date: 2024-07-29 15:36+0000\n"
-"Last-Translator: manucep, 2024\n"
+"POT-Creation-Date: 2024-12-10 17:39+0000\n"
+"PO-Revision-Date: 2024-12-10 17:39+0000\n"
+"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: es\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+
+#. module: sale_gathering_index
+#. odoo-python
+#: code:addons/sale_gathering_index/models/sale_order_line.py:0
+msgid ""
+"\n"
+"(Current price: $%s | Coef: %s%%)"
+msgstr ""
+"\n"
+"(Precio actual: $%s | Coef: %s%%)"
 
 #. module: sale_gathering_index
 #: model_terms:ir.ui.view,arch_db:sale_gathering_index.report_saleorder_index
@@ -72,7 +81,6 @@ msgstr "Línea de pedido de venta"
 #. module: sale_gathering_index
 #. odoo-python
 #: code:addons/sale_gathering_index/models/sale_order_line.py:0
-#, python-format
 msgid ""
 "You can't add an already gathered product more than once. Please modify the "
 "quantity of the existing line."
@@ -83,19 +91,14 @@ msgstr ""
 #. module: sale_gathering_index
 #. odoo-python
 #: code:addons/sale_gathering_index/models/sale_order_line.py:0
-#, python-format
-msgid ""
-"You can't modify the quantity of an added product. Please add a new line."
+msgid "You can't modify the description."
 msgstr ""
-"No puedes modificar la cantidad de un producto agregado. Por favor, añade "
-"una nueva línea."
 
 #. module: sale_gathering_index
 #. odoo-python
 #: code:addons/sale_gathering_index/models/sale_order_line.py:0
 msgid ""
-"\n"
-"(Current price: $%s | Coef: %s%%)"
+"You can't modify the quantity of an added product. Please add a new line."
 msgstr ""
-"\n"
-"(Precio actual: $%s | Coef: %s%%)"
+"No puedes modificar la cantidad de un producto agregado. Por favor, añade "
+"una nueva línea."
