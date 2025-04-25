@@ -18,26 +18,15 @@
 #
 ##############################################################################
 {
-    'name': 'Sale Gathering Index',
-    'version': "17.0.1.3.0",
-    'category': 'Sales & Stock',
-    'sequence': 14,
-    'summary': '',
-    'author': 'ADHOC SA',
-    'website': 'www.adhoc.com.ar',
-    'license': 'AGPL-3',
-    'images': [
-    ],
-    'depends': [
-        'sale_gathering'
-    ],
-    'data': [
-        'views/sale_order_views.xml',
-        'reports/report_saleorder_document_index.xml'
-    ],
-    'demo': [
-    ],
-    'installable': True,
-    'auto_install': False,
-    'application': False,
+    "name": "Sale Product Pack Three Discount",
+    "version": "17.0.1.0.0",
+    "author": "ADHOC SA",
+    "website": "www.adhoc.com.ar",
+    "license": "AGPL-3",
+    "depends": ["sale_product_pack", "sale_three_discounts"],
+    "data": [],
+    "demo": [],
+    "installable": True,
+    "auto_install": True,
+    "application": False,
 }

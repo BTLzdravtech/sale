@@ -10,32 +10,32 @@
    :target: https://www.gnu.org/licenses/agpl
    :alt: License: AGPL-3
 
-========================================
-Sale Order Type Automation Stock Voucher
-========================================
+================================
+Sale Product Pack Three Discount
+================================
 
-This module integrate Sale Order Type Automation and Stock Voucher.
+The module makes it so that when the pack has discounts on its components and you add it to a sales order with sale_three_discount, it shows them. These discounts always have to be shown because they are in the components of the pack.
 
 Installation
 ============
 
 To install this module, you need to:
 
-#. Just install this module.
+#. Just install this module
 
 Configuration
 =============
 
 To configure this module, you need to:
 
-#. Nothing to configure
+#. No configuration needed
 
 Usage
 =====
 
 To use this module, you need to:
 
-#. Just use the module.
+#. This module add an exception to sale order to required Reference to confirm the sale order
 
 .. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
    :alt: Try me on Runbot

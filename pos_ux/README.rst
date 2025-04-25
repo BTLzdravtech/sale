@@ -18,7 +18,7 @@ Point of Sale UX
    
    a. **Invoice on demand**: the user can check to invoice
    
-   b. **By default invoice**: invoice is issued by default. 
+   b. **By default invoice**: invoice is issued by default.
       It is allowed to change to not invoice
 
    c. **Always Invoice**: invoice is always issued
@@ -26,6 +26,10 @@ Point of Sale UX
 2. **Block invoiced download**: setting that cancels the download of the PDF invoice
 
 3. **Adds the contingency mode** for when connection fails
+
+4. Makes the "receivable account" of payment methods mandatory
+
+5. If a payment method does not have a "reivable account" defined, it will not allow you to log in to the POS.
 
 Installation
 ============
@@ -39,14 +43,14 @@ Configuration
 
 To configure this module, you need to:
 
-#. 
+#. .
 
 Usage
 =====
 
 To use this module, you need to:
 
-#. 
+#. .
 
 .. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
    :alt: Try me on Runbot
