@@ -9,5 +9,6 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     def _compute_purchase_price(self):
+        # TODO vk: lock for arg
         self = self.sudo()
         super()._compute_purchase_price()

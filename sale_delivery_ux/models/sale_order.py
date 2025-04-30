@@ -9,6 +9,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     def _create_delivery_line(self, carrier, price_unit):
+        # TODO vk: lock for arg
         """
         So that delivery lines are not waiting invoice or delivery,
         if carrier price is:

@@ -13,6 +13,7 @@ class SaleOrderLine(models.Model):
 
     @api.depends('order_id.force_invoiced_status')
     def _compute_invoice_status(self):
+        # TODO vk: lock for arg
         """
         Sobreescribimos directamente el invoice status y no el qty_to_invoice
         ya que no nos importa tipo de producto y lo hace mas facil.
@@ -40,6 +41,7 @@ class SaleOrderLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        # TODO vk: lock for arg
         lines = super().create(vals_list)
         if lines.filtered(lambda x: x.order_id and x.order_id.state == 'done'):
             raise ValidationError(_("You cannot add lines to blocked sale orders."))

@@ -10,7 +10,7 @@ from odoo.addons.website_sale.controllers.main import WebsiteSale
 
 class WebsiteSalePortal(WebsiteSale):
 
-
+    # TODO vk: proverit
     @http.route(['/portal/address'], type='http', methods=['GET', 'POST'],
                 auth="public", website=True)
     def portal_address(self, **kw):

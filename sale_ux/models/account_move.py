@@ -33,6 +33,7 @@ class AccountMove(models.Model):
 
     #Evaluar en proximas verciones si Odoo lo resuelve
     def action_post(self):
+        # TODO vk: lock for arg
         res = super(AccountMove, self).action_post()
         downpayment_lines = self.line_ids.sale_line_ids.filtered(
             lambda l: l.is_downpayment and not l.display_type

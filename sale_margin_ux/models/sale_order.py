@@ -9,6 +9,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     def action_update_prices(self):
+        # TODO vk: lock for arg
         super().action_update_prices()
         self.order_line._compute_purchase_price()
         return True

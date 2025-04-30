@@ -50,6 +50,7 @@ class SaleOrder(models.Model):
             return {'warning': warning}
 
     def _compute_is_expired(self):
+        # TODO vk: lock for arg
         today = fields.Date.today()
         for order in self:
             order.is_expired = order.state == 'draft' and order.validity_date and order.validity_date < today
@@ -57,6 +58,7 @@ class SaleOrder(models.Model):
             return super()._compute_is_expired()
 
     def action_confirm(self):
+        # TODO vk: lock for arg
         self.ensure_one()
         if self.is_expired:
             raise UserError(_(

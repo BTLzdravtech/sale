@@ -13,6 +13,7 @@
                 <field name="product_barcode" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='order_line']//field[@name='product_uom_qty']" position="attributes">
+                <!--                # TODO vk: lock only for arg-->
                 <attribute name="options">{'barcode_events': True}</attribute>
                 <attribute name="widget">field_float_scannable</attribute>
             </xpath>

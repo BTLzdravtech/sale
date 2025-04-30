@@ -11,6 +11,7 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
+        # TODO vk: lock for arg
         msg = (
             'If you use a sale type in the sale order related with invoice '
             'policy "Block Reserve/Block Delivery", then every sale line must '
@@ -23,6 +24,7 @@ class StockPicking(models.Model):
         return super().button_validate()
 
     def action_assign(self):
+        # TODO vk: lock for arg
         msg = (
             'If you use a sale type in the sale order related with invoice'
             ' policy "Prepaid - Block Reserve" , then every sale line must '

@@ -32,6 +32,7 @@ class SaleOrder(models.Model):
 
     def _prepare_invoice(self):
         vals = super(SaleOrder, self)._prepare_invoice()
+        # TODO vk: lock for arg
         propagate_internal_notes = self.env['ir.config_parameter'].sudo(
         ).get_param('sale.propagate_internal_notes') == 'True'
         propagate_note = self.env['ir.config_parameter'].sudo(
@@ -50,6 +51,7 @@ class SaleOrder(models.Model):
 
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id_show_update_prices(self):
+        # TODO vk: lock for arg
         super()._onchange_pricelist_id_show_update_prices()
         update_prices_automatically = safe_eval(
             self.env['ir.config_parameter'].sudo().get_param(
@@ -69,6 +71,7 @@ class SaleOrder(models.Model):
         self.show_update_fpos = False
 
     def action_cancel(self):
+        # TODO vk: lock for arg
         invoice_lines = self.sudo().env["account.move.line"].search([('sale_line_ids', 'in', self.order_line.ids)])
         moves = invoice_lines.mapped('move_id').filtered(
             lambda x: x.move_type in ('out_invoice', 'out_refund') and x.state not in ['cancel', 'draft']

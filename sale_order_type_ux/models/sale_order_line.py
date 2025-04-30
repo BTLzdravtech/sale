@@ -15,6 +15,7 @@ class SaleOrderLine(models.Model):
     )
 
     def _prepare_invoice_line(self, **optional_values):
+        # TODO vk: lock for arg
         """
         Forzamos compania de diario de sale type
         """

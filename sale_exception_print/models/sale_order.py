@@ -39,6 +39,7 @@ class SaleOrder(models.Model):
     # Improvement to be able to send things by context to the
     # pop up of exceptions
     def _popup_exceptions(self):
+        # TODO vk: lock for arg
         action = super(SaleOrder, self)._popup_exceptions()
         ctx = self._context.copy()
         ctx.update({

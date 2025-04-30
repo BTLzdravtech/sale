@@ -94,6 +94,7 @@ class SaleOrder(models.Model):
             pick.button_validate()
 
     def action_confirm(self):
+        # TODO vk: lock for arg
         res = super().action_confirm()
         # we use this because compatibility with sale exception module
         if isinstance(res, bool) and res:
@@ -105,6 +106,7 @@ class SaleOrder(models.Model):
         return res
 
     def _prepare_invoice(self):
+        # TODO vk: lock for arg
         res = super()._prepare_invoice()
         if (self.type_id.payment_atomation != 'none') and self.type_id.payment_journal_id:
             res['pay_now_journal_id'] = self.type_id.payment_journal_id.id

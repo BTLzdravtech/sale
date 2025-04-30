@@ -10,6 +10,7 @@ class SaleOrder(models.Model):
         return self.env.user.default_sale_order_type_id or super()._default_type_id()
 
     def _compute_sale_type_id(self):
+        # TODO vk: lock for arg
         sales = self.env['sale.order']
         user_type = self.env.user.default_sale_order_type_id
         if user_type and isinstance(self.id, models.NewId):

@@ -14,6 +14,7 @@ class SaleOrder(models.Model):
 
     @api.depends('partner_shipping_id', 'partner_id', 'company_id', 'type_id')
     def _compute_fiscal_position_id(self):
+        # TODO vk: lock for arg
         if self.type_id.fiscal_position_id:
             self.fiscal_position_id = self.type_id.fiscal_position_id
         else:
@@ -27,6 +28,7 @@ class SaleOrder(models.Model):
         return res
 
     def _prepare_invoice(self):
+        # TODO vk: lock for arg
         if not self.type_id.journal_id:
             return super()._prepare_invoice()
         res = super()._prepare_invoice()
@@ -45,6 +47,7 @@ class SaleOrder(models.Model):
         return res
 
     def _compute_team_id(self):
+        # TODO vk: lock for arg
         res = super()._compute_team_id()
         for order in self.filtered("type_id"):
             order_type = order.type_id
@@ -54,5 +57,6 @@ class SaleOrder(models.Model):
 
     @api.onchange("type_id")
     def _onchange_team_id(self):
+        # TODO vk: lock for arg
         if self.type_id and self.type_id.team_id:
             self.team_id = self.type_id.team_id

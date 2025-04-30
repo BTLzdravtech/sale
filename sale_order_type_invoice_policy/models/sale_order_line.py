@@ -13,6 +13,7 @@ class SaleOrderLine(models.Model):
     # lo cambiamos mas adelante no reprosese todas las ventas)
     @api.depends('order_id.type_id')
     def _compute_qty_to_invoice(self):
+        # TODO vk: lock for arg
         """
         Modificamos la funcion original para sobre escribir con la policy
         del sale type si es que viene definida distinta de by product

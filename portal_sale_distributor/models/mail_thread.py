@@ -5,6 +5,7 @@ class MailThread(models.AbstractModel):
     _inherit = 'mail.thread'
 
     def _message_auto_subscribe(self, updated_values, followers_existing_policy='skip'):
+        # TODO vk: lock for arg
         """ Cuando usuario portal crea OV se manda un mensjae de suscripcion
         al comercial, esto termina haciendo que se arroje error si se tiene
         instalado mass_mailing y las estadisticas por permiso de acceso

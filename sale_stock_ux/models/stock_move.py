@@ -16,6 +16,7 @@ class StockMove(models.Model):
         """ return create values for new picking that will be linked with group
         of moves in self.
         """
+        # TODO vk: lock for arg
         res = super()._get_new_picking_values()
         values = {}
         sale = self.mapped('group_id.sale_id')
