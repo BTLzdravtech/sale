@@ -39,15 +39,18 @@ class SaleOrder(models.Model):
     # Improvement to be able to send things by context to the
     # pop up of exceptions
     def _popup_exceptions(self):
-        # TODO vk: lock for arg
-        action = super(SaleOrder, self)._popup_exceptions()
-        ctx = self._context.copy()
-        ctx.update({
-            'active_id': self.ids[0],
-            'active_ids': self.ids,
-            'active_model': self._name,
-        })
-        action.update({
-            'context': ctx
-        })
-        return action
+        # DONETODO vk: lock for arg
+        if self.env.company.country_code == 'AR':
+            action = super(SaleOrder, self)._popup_exceptions()
+            ctx = self._context.copy()
+            ctx.update({
+                'active_id': self.ids[0],
+                'active_ids': self.ids,
+                'active_model': self._name,
+            })
+            action.update({
+                'context': ctx
+            })
+            return action
+        else:
+            return super(SaleOrder, self)._popup_exceptions()

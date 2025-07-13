@@ -13,6 +13,7 @@ class StockPicking(models.Model):
         On picking confirmation we check if invoice should be created
         """
         res = super()._action_done()
-        # TODO vk: lock for arg
-        self.sudo().mapped('sale_id').run_invoicing_atomation()
+        # DONETODO vk: lock for arg
+        if self.env.company.country_code == 'AR':
+            self.sudo().mapped('sale_id').run_invoicing_atomation()
         return res

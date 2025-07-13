@@ -94,20 +94,22 @@ class SaleOrder(models.Model):
             pick.button_validate()
 
     def action_confirm(self):
-        # TODO vk: lock for arg
+        # DONETODO vk: lock for arg
         res = super().action_confirm()
-        # we use this because compatibility with sale exception module
-        if isinstance(res, bool) and res:
-            # because it's needed to return actions if exists
-            res = self.run_picking_automation()
-            self.sudo().run_invoicing_atomation()
-            if self.type_id.set_done_on_confirmation:
-                self.action_lock()
+        if self.env.company.country_code == 'AR':
+            # we use this because compatibility with sale exception module
+            if isinstance(res, bool) and res:
+                # because it's needed to return actions if exists
+                res = self.run_picking_automation()
+                self.sudo().run_invoicing_atomation()
+                if self.type_id.set_done_on_confirmation:
+                    self.action_lock()
         return res
 
     def _prepare_invoice(self):
-        # TODO vk: lock for arg
+        # DONETODO vk: lock for arg
         res = super()._prepare_invoice()
-        if (self.type_id.payment_atomation != 'none') and self.type_id.payment_journal_id:
-            res['pay_now_journal_id'] = self.type_id.payment_journal_id.id
+        if self.env.company.country_code == 'AR':
+            if (self.type_id.payment_atomation != 'none') and self.type_id.payment_journal_id:
+                res['pay_now_journal_id'] = self.type_id.payment_journal_id.id
         return res
