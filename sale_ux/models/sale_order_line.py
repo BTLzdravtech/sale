@@ -13,7 +13,7 @@ class SaleOrderLine(models.Model):
 
     @api.depends('order_id.force_invoiced_status')
     def _compute_invoice_status(self):
-        # TODO vk: lock for arg
+        # DONETODO vk: lock for arg
         """
         Sobreescribimos directamente el invoice status y no el qty_to_invoice
         ya que no nos importa tipo de producto y lo hace mas facil.
@@ -21,12 +21,14 @@ class SaleOrderLine(models.Model):
         _get_to_invoice_qty
         """
         super()._compute_invoice_status()
-        for line in self:
-            # solo seteamos facturado si en sale o done
-            if line.order_id.state not in ['sale', 'done']:
-                continue
-            if line.order_id.force_invoiced_status:
-                line.invoice_status = line.order_id.force_invoiced_status
+
+        if self.env.company.country_code == 'AR':
+            for line in self:
+                # solo seteamos facturado si en sale o done
+                if line.order_id.state not in ['sale', 'done']:
+                    continue
+                if line.order_id.force_invoiced_status:
+                    line.invoice_status = line.order_id.force_invoiced_status
 
     def action_sale_history(self):
         self.ensure_one()
@@ -41,10 +43,11 @@ class SaleOrderLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        # TODO vk: lock for arg
+        # DONETODO vk: lock for arg
         lines = super().create(vals_list)
-        if lines.filtered(lambda x: x.order_id and x.order_id.state == 'done'):
-            raise ValidationError(_("You cannot add lines to blocked sale orders."))
+        if self.env.company.country_code == 'AR':
+            if lines.filtered(lambda x: x.order_id and x.order_id.state == 'done'):
+                raise ValidationError(_("You cannot add lines to blocked sale orders."))
         return lines
 
     def _get_protected_fields(self):

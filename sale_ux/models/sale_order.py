@@ -213,3 +213,10 @@ class SaleOrder(models.Model):
     def _check_changes_locked_orders(self):
         for rec in self.filtered(lambda x: x.state == 'done'):
             raise ValidationError(_("You cannot modify already locked orders."))
+
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        if view_type == "form" and self.env.company.country_code == "AR":
+            view_id = self.env.ref("sale_ux.view_order_form_ar").id
+        return super().get_view(view_id=view_id, view_type=view_type, **options)

@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <odoo>
-    <record id="view_contact_allow_any_user_as_salesman" model="ir.ui.view">
+    <record id="view_contact_allow_any_user_as_salesman_ar" model="ir.ui.view">
         <field name="name">res.partner.form.salesman</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="mode">primary</field>
         <field name="arch" type="xml">
             <xpath expr="//group/field[@name='user_id']" position='replace'>
-                <!--                # TODO vk: replace->
+                <!--                # DONETODO vk: replace -->
                 <field name="user_id" domain="[('share', '=', False)]" groups="!sale_ux.group_allow_any_user_as_salesman"/>
                 <field name="user_id" domain="[]" groups="sale_ux.group_allow_any_user_as_salesman"/>
             </xpath>
