@@ -33,21 +33,22 @@ class AccountMove(models.Model):
 
     #Evaluar en proximas verciones si Odoo lo resuelve
     def action_post(self):
-        # TODO vk: lock for arg
+        # DONETODO vk: lock for arg
         res = super(AccountMove, self).action_post()
-        downpayment_lines = self.line_ids.sale_line_ids.filtered(
-            lambda l: l.is_downpayment and not l.display_type
-        )
-        for downpayment_line in downpayment_lines:
-            # When change currency in downpayment
-            if self.currency_id != downpayment_line.currency_id:
-                downpayment_line.price_unit = self.currency_id._convert(
-                    downpayment_line.price_unit, 
-                    downpayment_line.currency_id, 
-                    self.company_id, 
-                    self.invoice_date or fields.Date.today()
-                )
-            # When change company in downpayment
-            if downpayment_line.company_id != self.company_id:
-                downpayment_line.with_company(downpayment_line.company_id.id)._compute_tax_id()
+        if self.env.company.country_id.code == 'AR':
+            downpayment_lines = self.line_ids.sale_line_ids.filtered(
+                lambda l: l.is_downpayment and not l.display_type
+            )
+            for downpayment_line in downpayment_lines:
+                # When change currency in downpayment
+                if self.currency_id != downpayment_line.currency_id:
+                    downpayment_line.price_unit = self.currency_id._convert(
+                        downpayment_line.price_unit,
+                        downpayment_line.currency_id,
+                        self.company_id,
+                        self.invoice_date or fields.Date.today()
+                    )
+                # When change company in downpayment
+                if downpayment_line.company_id != self.company_id:
+                    downpayment_line.with_company(downpayment_line.company_id.id)._compute_tax_id()
         return res

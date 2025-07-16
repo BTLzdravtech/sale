@@ -50,20 +50,24 @@ class SaleOrder(models.Model):
             return {'warning': warning}
 
     def _compute_is_expired(self):
-        # TODO vk: lock for arg
-        today = fields.Date.today()
-        for order in self:
-            order.is_expired = order.state == 'draft' and order.validity_date and order.validity_date < today
-        if not order.is_expired:
+        # DONETODO vk: lock for arg
+        if self.env.company.country_id.code == 'AR':
+            today = fields.Date.today()
+            for order in self:
+                order.is_expired = order.state == 'draft' and order.validity_date and order.validity_date < today
+            if not order.is_expired:
+                return super()._compute_is_expired()
+        else:
             return super()._compute_is_expired()
 
     def action_confirm(self):
-        # TODO vk: lock for arg
-        self.ensure_one()
-        if self.is_expired:
-            raise UserError(_(
-                'You can not confirm this quotation as it was valid until'
-                ' %s! Please update validity.') % (self.validity_date))
+        # DONETODO vk: lock for arg
+        if self.env.company.country_id.code == 'AR':
+            self.ensure_one()
+            if self.is_expired:
+                raise UserError(_(
+                    'You can not confirm this quotation as it was valid until'
+                    ' %s! Please update validity.') % (self.validity_date))
         return super().action_confirm()
 
     def update_date_prices_and_validity(self):

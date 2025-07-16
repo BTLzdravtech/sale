@@ -32,32 +32,34 @@ class SaleOrder(models.Model):
 
     def _prepare_invoice(self):
         vals = super(SaleOrder, self)._prepare_invoice()
-        # TODO vk: lock for arg
-        propagate_internal_notes = self.env['ir.config_parameter'].sudo(
-        ).get_param('sale.propagate_internal_notes') == 'True'
-        propagate_note = self.env['ir.config_parameter'].sudo(
-        ).get_param('sale.propagate_note') == 'True'
-        if propagate_internal_notes and self.internal_notes:
-            vals.update({
-                'internal_notes': self.internal_notes})
-        if 'narration' in vals and not propagate_note:
-            vals.pop('narration')
-        company = self._context.get('force_company', False) and self.env['res.company'].browse(
-            self._context.get('force_company')) or self.env.company
-        if not propagate_note and self.env['ir.config_parameter'].sudo().get_param(
-                'account.use_invoice_terms') and company.invoice_terms:
-            vals['narration'] = company.invoice_terms
+        # DONETODO vk: lock for arg
+        if self.env.company.country_id.code == 'AR':
+            propagate_internal_notes = self.env['ir.config_parameter'].sudo(
+            ).get_param('sale.propagate_internal_notes') == 'True'
+            propagate_note = self.env['ir.config_parameter'].sudo(
+            ).get_param('sale.propagate_note') == 'True'
+            if propagate_internal_notes and self.internal_notes:
+                vals.update({
+                    'internal_notes': self.internal_notes})
+            if 'narration' in vals and not propagate_note:
+                vals.pop('narration')
+            company = self._context.get('force_company', False) and self.env['res.company'].browse(
+                self._context.get('force_company')) or self.env.company
+            if not propagate_note and self.env['ir.config_parameter'].sudo().get_param(
+                    'account.use_invoice_terms') and company.invoice_terms:
+                vals['narration'] = company.invoice_terms
         return vals
 
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id_show_update_prices(self):
-        # TODO vk: lock for arg
+        # DONETODO vk: lock for arg
         super()._onchange_pricelist_id_show_update_prices()
-        update_prices_automatically = safe_eval(
-            self.env['ir.config_parameter'].sudo().get_param(
-                'sale_ux.update_prices_automatically', 'False'))
-        if self.order_line and update_prices_automatically:
-            super()._recompute_prices()
+        if self.env.company.country_id.code == 'AR':
+            update_prices_automatically = safe_eval(
+                self.env['ir.config_parameter'].sudo().get_param(
+                    'sale_ux.update_prices_automatically', 'False'))
+            if self.order_line and update_prices_automatically:
+                super()._recompute_prices()
 
     @api.onchange('fiscal_position_id')
     def _onchange_fiscal_position_id(self):
@@ -71,48 +73,52 @@ class SaleOrder(models.Model):
         self.show_update_fpos = False
 
     def action_cancel(self):
-        # TODO vk: lock for arg
-        invoice_lines = self.sudo().env["account.move.line"].search([('sale_line_ids', 'in', self.order_line.ids)])
-        moves = invoice_lines.mapped('move_id').filtered(
-            lambda x: x.move_type in ('out_invoice', 'out_refund') and x.state not in ['cancel', 'draft']
-        )
-        if moves:
-            raise UserError(_(
-                "Unable to cancel this sale order. You must first "
-                "cancel related bills and pickings."))
-        if any(order.locked for order in self):
-            #No encontre otra forma de evitar el raise usererror que impide que ordenes se cancelen si el pedido está bloqueado
-            cancel_warning = self._show_cancel_wizard()
-            if cancel_warning:
-                self.ensure_one()
-                template_id = self.env['ir.model.data']._xmlid_to_res_id(
-                    'sale.mail_template_sale_cancellation', raise_if_not_found=False
-                )
-                lang = self.env.context.get('lang')
-                template = self.env['mail.template'].browse(template_id)
-                if template.lang:
-                    lang = template._render_lang(self.ids)[self.id]
-                ctx = {
-                    'default_template_id': template_id,
-                    'default_order_id': self.id,
-                    'mark_so_as_canceled': True,
-                    'default_email_layout_xmlid': "mail.mail_notification_layout_with_responsible_signature",
-                    'model_description': self.with_context(lang=lang).type_name,
-                }
-                self.action_unlock()
-                return {
-                    'name': _('Cancel %s', self.type_name),
-                    'view_mode': 'form',
-                    'res_model': 'sale.order.cancel',
-                    'view_id': self.env.ref('sale.sale_order_cancel_view_form').id,
-                    'type': 'ir.actions.act_window',
-                    'context': ctx,
-                    'target': 'new'
-                }
+        # DONETODO vk: lock for arg
+        if self.env.company.country_id.code == 'AR':
+            invoice_lines = self.sudo().env["account.move.line"].search([('sale_line_ids', 'in', self.order_line.ids)])
+            moves = invoice_lines.mapped('move_id').filtered(
+                lambda x: x.move_type in ('out_invoice', 'out_refund') and x.state not in ['cancel', 'draft']
+            )
+            if moves:
+                raise UserError(_(
+                    "Unable to cancel this sale order. You must first "
+                    "cancel related bills and pickings."))
+            if any(order.locked for order in self):
+                #No encontre otra forma de evitar el raise usererror que impide que ordenes se cancelen si el pedido está bloqueado
+                cancel_warning = self._show_cancel_wizard()
+                if cancel_warning:
+                    self.ensure_one()
+                    template_id = self.env['ir.model.data']._xmlid_to_res_id(
+                        'sale.mail_template_sale_cancellation', raise_if_not_found=False
+                    )
+                    lang = self.env.context.get('lang')
+                    template = self.env['mail.template'].browse(template_id)
+                    if template.lang:
+                        lang = template._render_lang(self.ids)[self.id]
+                    ctx = {
+                        'default_template_id': template_id,
+                        'default_order_id': self.id,
+                        'mark_so_as_canceled': True,
+                        'default_email_layout_xmlid': "mail.mail_notification_layout_with_responsible_signature",
+                        'model_description': self.with_context(lang=lang).type_name,
+                    }
+                    self.action_unlock()
+                    return {
+                        'name': _('Cancel %s', self.type_name),
+                        'view_mode': 'form',
+                        'res_model': 'sale.order.cancel',
+                        'view_id': self.env.ref('sale.sale_order_cancel_view_form').id,
+                        'type': 'ir.actions.act_window',
+                        'context': ctx,
+                        'target': 'new'
+                    }
+                else:
+                    return self._action_cancel()
             else:
-                return self._action_cancel()
+                return super().action_cancel()
         else:
             return super().action_cancel()
+
 
     @api.constrains('force_invoiced_status')
     def check_force_invoiced_status(self):
@@ -215,8 +221,8 @@ class SaleOrder(models.Model):
             raise ValidationError(_("You cannot modify already locked orders."))
 
 
-    @api.model
-    def get_view(self, view_id=None, view_type="form", **options):
-        if view_type == "form" and self.env.company.country_code == "AR":
-            view_id = self.env.ref("sale_ux.view_order_form_ar").id
-        return super().get_view(view_id=view_id, view_type=view_type, **options)
+    # @api.model
+    # def get_view(self, view_id=None, view_type="form", **options):
+    #     if view_type == "form" and self.env.company.country_code == "AR":
+    #         view_id = self.env.ref("sale_ux.view_order_form_ar").id
+    #     return super().get_view(view_id=view_id, view_type=view_type, **options)
