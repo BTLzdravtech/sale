@@ -5,7 +5,7 @@ class AccountAnalyticLine(models.Model):
     _inherit = 'account.analytic.line'
 
     def _is_not_billed(self):
-        # TODO vk: lock for arg
+        # TODO vk: lock for arg - module not installed
         """ Relativo a lo que esta en README en item c2
         Basicamente lo que hacemos es proteger las lineas de parte de horas si se setea ese parametro.
         Lo hacemos a traves de este campo que es llamado por todos los metodos que actualizan la info del parte de horas.

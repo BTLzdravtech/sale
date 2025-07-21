@@ -31,7 +31,7 @@ class SaleOrderLine(models.Model):
 
     @api.depends('discount1', 'discount2', 'discount3')
     def _compute_discount(self):
-        # TODO vk: lock for arg
+        # TODO vk: lock for arg - module not installed
         for line in self:
             context = self._context
             pricelist_id = line.order_id.pricelist_id
@@ -52,7 +52,7 @@ class SaleOrderLine(models.Model):
         self.with_context(onchange_product=True)._compute_discount()
 
     def _prepare_invoice_line(self, **optional_values):
-        # TODO vk: lock for arg
+        # TODO vk: lock for arg - module not installed
         res = super()._prepare_invoice_line(**optional_values)
         res.update({
             'discount1': self.discount1,

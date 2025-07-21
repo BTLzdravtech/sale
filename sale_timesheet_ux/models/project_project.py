@@ -19,7 +19,7 @@ class ProjectProject(models.Model):
         return res
 
     def _compute_partner_id(self):
-        # TODO vk: lock for arg
+        # TODO vk: lock for arg - module not installed
         for project in self:
             project_partner_id = project.partner_id or project.analytic_account_id.partner_id or project.sale_order_id.partner_id
             super()._compute_partner_id()
