@@ -50,7 +50,6 @@ class SaleOrder(models.Model):
             return {'warning': warning}
 
     def _compute_is_expired(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_id.code == 'AR':
             today = fields.Date.today()
             for order in self:
@@ -61,7 +60,6 @@ class SaleOrder(models.Model):
             return super()._compute_is_expired()
 
     def action_confirm(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_id.code == 'AR':
             self.ensure_one()
             if self.is_expired:

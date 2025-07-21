@@ -10,7 +10,6 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     @api.depends('sale_type_id')
-    # DONETODO vk: lock for arg
     def _compute_sale_type_id(self):
         super()._compute_sale_type_id()
         if self.env.company.country_code == 'AR':
@@ -20,7 +19,6 @@ class AccountMove(models.Model):
 
     @api.onchange('journal_id')
     def _onchange_journal(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             if self.journal_id and self.journal_id.currency_id:
                 new_currency = self.journal_id.currency_id

@@ -13,7 +13,6 @@ class SaleOrderLine(models.Model):
     # lo cambiamos mas adelante no reprosese todas las ventas)
     @api.depends('order_id.type_id')
     def _compute_qty_to_invoice(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             """
             Modificamos la funcion original para sobre escribir con la policy

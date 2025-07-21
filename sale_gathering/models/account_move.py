@@ -5,7 +5,6 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     def action_post(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             down_payment_line = self.line_ids.filtered(lambda line: line.is_downpayment and line.sale_line_ids.order_id.is_gathering)
             if down_payment_line:

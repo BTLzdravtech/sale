@@ -9,7 +9,6 @@ class StockMove(models.Model):
     _inherit = 'stock.move'
 
     def _action_assign(self, force_qty=False):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             """
             For the cron call check if the moves needs to be reserved or not depends of the policy in the sale order type.

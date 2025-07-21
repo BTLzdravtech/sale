@@ -9,7 +9,6 @@ class BaseExceptionMethod(models.AbstractModel):
     _inherit = 'base.exception.method'
 
     def _rule_domain(self):
-        # DONETODO vk: lock for arg
         """Filter exception.rules.
         By default, only the rules with the correct model
         will be used.

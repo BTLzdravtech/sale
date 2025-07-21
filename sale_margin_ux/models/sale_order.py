@@ -9,7 +9,6 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     def action_update_prices(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             super().action_update_prices()
             self.order_line._compute_purchase_price()

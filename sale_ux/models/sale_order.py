@@ -32,7 +32,6 @@ class SaleOrder(models.Model):
 
     def _prepare_invoice(self):
         vals = super(SaleOrder, self)._prepare_invoice()
-        # DONETODO vk: lock for arg
         if self.env.company.country_id.code == 'AR':
             propagate_internal_notes = self.env['ir.config_parameter'].sudo(
             ).get_param('sale.propagate_internal_notes') == 'True'
@@ -52,7 +51,6 @@ class SaleOrder(models.Model):
 
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id_show_update_prices(self):
-        # DONETODO vk: lock for arg
         super()._onchange_pricelist_id_show_update_prices()
         if self.env.company.country_id.code == 'AR':
             update_prices_automatically = safe_eval(
@@ -73,7 +71,6 @@ class SaleOrder(models.Model):
         self.show_update_fpos = False
 
     def action_cancel(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_id.code == 'AR':
             invoice_lines = self.sudo().env["account.move.line"].search([('sale_line_ids', 'in', self.order_line.ids)])
             moves = invoice_lines.mapped('move_id').filtered(

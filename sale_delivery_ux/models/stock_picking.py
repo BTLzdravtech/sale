@@ -19,7 +19,6 @@ class StockPicking(models.Model):
         button or automatically by the picking and that the user has not change
         for any reason
         """
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             super()._add_delivery_cost_to_so()
             deliver_lines = self.sale_id.order_line.filtered(lambda x: (

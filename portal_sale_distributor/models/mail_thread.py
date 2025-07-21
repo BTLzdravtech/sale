@@ -5,7 +5,6 @@ class MailThread(models.AbstractModel):
     _inherit = 'mail.thread'
 
     def _message_auto_subscribe(self, updated_values, followers_existing_policy='skip'):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             """ Cuando usuario portal crea OV se manda un mensjae de suscripcion
             al comercial, esto termina haciendo que se arroje error si se tiene

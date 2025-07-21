@@ -11,7 +11,6 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             msg = (
                 'If you use a sale type in the sale order related with invoice '
@@ -25,7 +24,6 @@ class StockPicking(models.Model):
         return super().button_validate()
 
     def action_assign(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             msg = (
                 'If you use a sale type in the sale order related with invoice'

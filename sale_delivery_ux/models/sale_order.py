@@ -9,7 +9,6 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     def _create_delivery_line(self, carrier, price_unit):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             """
             So that delivery lines are not waiting invoice or delivery,

@@ -47,7 +47,7 @@ class ResConfigSettings(models.TransientModel):
 
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
-        # NOTDONETODO vk: consult this
+        # TODO os: this should be locked only for arg
         get_param = self.env['ir.config_parameter'].sudo().get_param
         res.update(move_internal_notes=get_param(
             'sale.propagate_internal_notes') == 'True')
@@ -60,7 +60,7 @@ class ResConfigSettings(models.TransientModel):
 
     def set_values(self):
         super(ResConfigSettings, self).set_values()
-        # NOTDONETODO vk: consult this
+        # TODO os: this should be locked only for arg
         set_param = self.env['ir.config_parameter'].sudo().set_param
         set_param('sale.propagate_internal_notes',
                   repr(self.move_internal_notes))

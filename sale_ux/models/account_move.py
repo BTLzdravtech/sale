@@ -33,7 +33,6 @@ class AccountMove(models.Model):
 
     #Evaluar en proximas verciones si Odoo lo resuelve
     def action_post(self):
-        # DONETODO vk: lock for arg
         res = super(AccountMove, self).action_post()
         if self.env.company.country_id.code == 'AR':
             downpayment_lines = self.line_ids.sale_line_ids.filtered(

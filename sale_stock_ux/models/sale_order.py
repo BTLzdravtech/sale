@@ -36,7 +36,6 @@ class SaleOrder(models.Model):
                                      for line in order.order_line)
 
     def action_cancel(self):
-        # DONETODO vk: lock for arg
         if self.env.company.country_id.code == 'AR':
             self = self.with_context(cancel_from_order=True)
             for order in self.filtered(lambda order: order.picking_ids.filtered(

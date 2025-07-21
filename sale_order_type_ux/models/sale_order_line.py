@@ -15,7 +15,6 @@ class SaleOrderLine(models.Model):
     )
 
     def _prepare_invoice_line(self, **optional_values):
-        # DONETODO vk: lock for arg
         if self.env.company.country_code == 'AR':
             """
             Forzamos compania de diario de sale type

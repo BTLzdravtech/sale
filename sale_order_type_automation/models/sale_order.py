@@ -94,7 +94,6 @@ class SaleOrder(models.Model):
             pick.button_validate()
 
     def action_confirm(self):
-        # DONETODO vk: lock for arg
         res = super().action_confirm()
         if self.env.company.country_code == 'AR':
             # we use this because compatibility with sale exception module
@@ -107,7 +106,6 @@ class SaleOrder(models.Model):
         return res
 
     def _prepare_invoice(self):
-        # DONETODO vk: lock for arg
         res = super()._prepare_invoice()
         if self.env.company.country_code == 'AR':
             if (self.type_id.payment_atomation != 'none') and self.type_id.payment_journal_id:
