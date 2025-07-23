@@ -6,7 +6,6 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <field name="invoice_user_id" position="replace">
-                <!--                # TODO vk: replace-->
                 <field name="invoice_user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]" groups="!sale_ux.group_allow_any_user_as_salesman"/>
                 <field name="invoice_user_id" widget="many2one_avatar_user"  domain="[]" groups="sale_ux.group_allow_any_user_as_salesman"/>
             </field>

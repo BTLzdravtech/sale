@@ -6,7 +6,6 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <field name="user_id" position="replace">
-                <!--                # TODO vk: replace-->
                 <field name="user_id" widget="many2one_avatar_user" groups="!sale_ux.group_allow_any_user_as_salesman"/>
                 <field name="user_id" widget="many2one_avatar_user"  domain="[]" groups="sale_ux.group_allow_any_user_as_salesman"/>
             </field>
@@ -20,11 +19,9 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='order_line']/tree//field[@name='price_subtotal']" position="attributes">
-                <!--                # TODO vk: lock only for arg-->
                 <attribute name="string">Subtotal</attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree//field[@name='price_total']" position="attributes">
-                <!--                # TODO vk: lock only for arg-->
                 <attribute name="string">Total</attribute>
             </xpath>
             <group name="note_group" position="after">
@@ -39,14 +36,12 @@
             </group>
 
             <button name="action_cancel" position="attributes">
-                <!--                # TODO vk: lock only for arg-->
                 <attribute name="invisible">state not in ['draft', 'sent', 'sale', 'done']</attribute>
             </button>
             <field name="partner_id" position="after">
                 <field name="commercial_partner_id" invisible="1"/>
             </field>
             <field name="analytic_account_id" position="attributes">
-                <!--                # TODO vk: lock only for arg-->
                 <attribute name="domain">['|',('partner_id','=',False), ('commercial_partner_id','=',commercial_partner_id)]</attribute>
             </field>
             <group name="order_details" position="inside">
@@ -55,7 +50,6 @@
                 </div>
             </group>
             <xpath expr="//group[@name='order_details']//div[hasclass('o_row')]/button" position="attributes">
-                <!--                # TODO vk: lock only for arg-->
                 <attribute name="invisible">state not in ['draft', 'sent']</attribute>
                 <attribute name="confirm"/>
             </xpath>

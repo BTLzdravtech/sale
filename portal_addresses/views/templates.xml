@@ -1,7 +1,7 @@
 <odoo>
+    <!-- # TODO os: lock only for arg-->
     <template id="addresses" inherit_id="website_sale.checkout" primary="True">
         <t t-call="website_sale.checkout_layout" position="attributes">
-            <!--                # TODO vk: prepisujou t-call-->
             <attribute name="t-call">portal_addresses.portal_checkout_layout</attribute>
         </t>
         <t t-call="website_sale.row_addresses" position="attributes">
