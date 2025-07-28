@@ -19,11 +19,14 @@ class ProjectProject(models.Model):
         return res
 
     def _compute_partner_id(self):
-        # TODO vk: lock for arg - module not installed
-        for project in self:
-            project_partner_id = project.partner_id or project.analytic_account_id.partner_id or project.sale_order_id.partner_id
+        # DONETODO vk: lock for arg - module not installed
+        if self.env.company.country_code == 'AR':
+            for project in self:
+                project_partner_id = project.partner_id or project.analytic_account_id.partner_id or project.sale_order_id.partner_id
+                super()._compute_partner_id()
+                project.partner_id = project_partner_id
+        else:
             super()._compute_partner_id()
-            project.partner_id = project_partner_id
 
     def change_allow_billable(self):
         if self.allow_billable == True:

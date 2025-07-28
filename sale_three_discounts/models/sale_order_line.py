@@ -31,32 +31,38 @@ class SaleOrderLine(models.Model):
 
     @api.depends('discount1', 'discount2', 'discount3')
     def _compute_discount(self):
-        # TODO vk: lock for arg - module not installed
-        for line in self:
-            context = self._context
-            pricelist_id = line.order_id.pricelist_id
-            discount_policy_with_discount = pricelist_id and pricelist_id.discount_policy == 'with_discount'
-            if (context.get('recompute_prices') and not discount_policy_with_discount) or context.get('onchange_product') or context.get('website_id'):
-                super(SaleOrderLine, line)._compute_discount()
-                line.discount1 = line.discount
-                line.discount2 = 0.0
-                line.discount3 = 0.0
-            else:
-                discount_factor = 1.0
-                for discount in [line.discount1, line.discount2, line.discount3]:
-                    discount_factor *= (100.0 - discount) / 100.0
-                line.discount = 100.0 - (discount_factor * 100.0)
+        # DONETODO vk: lock for arg - module not installed
+        if self.env.company.country_code == 'AR':
+            for line in self:
+                context = self._context
+                pricelist_id = line.order_id.pricelist_id
+                discount_policy_with_discount = pricelist_id and pricelist_id.discount_policy == 'with_discount'
+                if (context.get('recompute_prices') and not discount_policy_with_discount) or context.get('onchange_product') or context.get('website_id'):
+                    super(SaleOrderLine, line)._compute_discount()
+                    line.discount1 = line.discount
+                    line.discount2 = 0.0
+                    line.discount3 = 0.0
+                else:
+                    discount_factor = 1.0
+                    for discount in [line.discount1, line.discount2, line.discount3]:
+                        discount_factor *= (100.0 - discount) / 100.0
+                    line.discount = 100.0 - (discount_factor * 100.0)
+        else:
+            super(SaleOrderLine, self)._compute_discount()
 
     @api.onchange('product_id')
     def _onchange_product(self):
         self.with_context(onchange_product=True)._compute_discount()
 
     def _prepare_invoice_line(self, **optional_values):
-        # TODO vk: lock for arg - module not installed
-        res = super()._prepare_invoice_line(**optional_values)
-        res.update({
-            'discount1': self.discount1,
-            'discount2': self.discount2,
-            'discount3': self.discount3
-        })
-        return res
+        # DONETODO vk: lock for arg - module not installed
+        if self.env.company.country_code == 'AR':
+            res = super()._prepare_invoice_line(**optional_values)
+            res.update({
+                'discount1': self.discount1,
+                'discount2': self.discount2,
+                'discount3': self.discount3
+            })
+            return res
+        else:
+            return super()._prepare_invoice_line(**optional_values)
