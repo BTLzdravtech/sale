@@ -19,7 +19,6 @@ class ProjectProject(models.Model):
         return res
 
     def _compute_partner_id(self):
-        # DONETODO vk: lock for arg - module not installed
         if self.env.company.country_code == 'AR':
             for project in self:
                 project_partner_id = project.partner_id or project.analytic_account_id.partner_id or project.sale_order_id.partner_id

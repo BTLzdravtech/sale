@@ -5,7 +5,6 @@ class AccountAnalyticLine(models.Model):
     _inherit = 'account.analytic.line'
 
     def _is_not_billed(self):
-        # DONETODO vk: lock for arg - module not installed
         if self.env.company.country_code == 'AR':
             """ Relativo a lo que esta en README en item c2
             Basicamente lo que hacemos es proteger las lineas de parte de horas si se setea ese parametro.

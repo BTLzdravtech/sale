@@ -15,7 +15,6 @@ class ProjectTask(models.Model):
     def _compute_partner_id(self):
         if self.env.company.country_code == 'AR':
             for task in self:
-                # DONETODO vk: lock for arg - module not installed
                 task_partner_id = task.partner_id or task.project_id.partner_id or task.sale_order_id.partner_id
                 super()._compute_partner_id()
                 task.partner_id = task_partner_id
@@ -25,7 +24,6 @@ class ProjectTask(models.Model):
     def _compute_sale_line(self):
         if self.env.company.country_code == 'AR':
             for task in self:
-                # DONETODO vk: lock for arg - module not installed
                 sale_line = task.sale_line_id or task.parent_id.sale_line_id or task.project_id.sale_line_id or task.milestone_id.sale_line_id
                 super()._compute_sale_line()
                 if not task.sale_line_id or task.sale_line_id != sale_line:

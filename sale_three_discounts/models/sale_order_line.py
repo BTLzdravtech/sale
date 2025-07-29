@@ -31,7 +31,6 @@ class SaleOrderLine(models.Model):
 
     @api.depends('discount1', 'discount2', 'discount3')
     def _compute_discount(self):
-        # DONETODO vk: lock for arg - module not installed
         if self.env.company.country_code == 'AR':
             for line in self:
                 context = self._context
@@ -55,7 +54,6 @@ class SaleOrderLine(models.Model):
         self.with_context(onchange_product=True)._compute_discount()
 
     def _prepare_invoice_line(self, **optional_values):
-        # DONETODO vk: lock for arg - module not installed
         if self.env.company.country_code == 'AR':
             res = super()._prepare_invoice_line(**optional_values)
             res.update({

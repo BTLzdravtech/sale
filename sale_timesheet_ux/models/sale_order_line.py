@@ -6,7 +6,6 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     def _timesheet_create_project(self):
-        # DONETODO vk: lock for arg - module not installed
         if self.env.company.country_code == 'AR':
             self.ensure_one()
             account = self.order_id.analytic_account_id
