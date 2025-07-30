@@ -47,26 +47,28 @@ class ResConfigSettings(models.TransientModel):
 
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
-        # TODO os: this should be locked only for arg
-        get_param = self.env['ir.config_parameter'].sudo().get_param
-        res.update(move_internal_notes=get_param(
-            'sale.propagate_internal_notes') == 'True')
-        res.update(move_note=get_param('sale.propagate_note') == 'True')
-        res.update(update_prices_automatically=get_param(
-            'sale_ux.update_prices_automatically',
-            'False').lower() == 'true'
-        )
+        # DONETODO os: this should be locked only for arg
+        if self.env.company.country_code == 'AR':
+            get_param = self.env['ir.config_parameter'].sudo().get_param
+            res.update(move_internal_notes=get_param(
+                'sale.propagate_internal_notes') == 'True')
+            res.update(move_note=get_param('sale.propagate_note') == 'True')
+            res.update(update_prices_automatically=get_param(
+                'sale_ux.update_prices_automatically',
+                'False').lower() == 'true'
+            )
         return res
 
     def set_values(self):
         super(ResConfigSettings, self).set_values()
-        # TODO os: this should be locked only for arg
-        set_param = self.env['ir.config_parameter'].sudo().set_param
-        set_param('sale.propagate_internal_notes',
-                  repr(self.move_internal_notes))
-        set_param('sale.propagate_note', repr(self.move_note))
-        set_param('sale_ux.update_prices_automatically',
-                  repr(self.update_prices_automatically))
+        # DONETODO os: this should be locked only for arg
+        if self.env.company.country_code == 'AR':
+            set_param = self.env['ir.config_parameter'].sudo().set_param
+            set_param('sale.propagate_internal_notes',
+                      repr(self.move_internal_notes))
+            set_param('sale.propagate_note', repr(self.move_note))
+            set_param('sale_ux.update_prices_automatically',
+                      repr(self.update_prices_automatically))
 
     @api.constrains('days_to_keep_quotations')
     def _check_days_to_keep_sale_orders(self):
