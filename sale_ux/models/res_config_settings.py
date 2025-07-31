@@ -47,7 +47,6 @@ class ResConfigSettings(models.TransientModel):
 
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
-        # DONETODO os: this should be locked only for arg
         if self.env.company.country_code == 'AR':
             get_param = self.env['ir.config_parameter'].sudo().get_param
             res.update(move_internal_notes=get_param(
@@ -61,7 +60,6 @@ class ResConfigSettings(models.TransientModel):
 
     def set_values(self):
         super(ResConfigSettings, self).set_values()
-        # DONETODO os: this should be locked only for arg
         if self.env.company.country_code == 'AR':
             set_param = self.env['ir.config_parameter'].sudo().set_param
             set_param('sale.propagate_internal_notes',
