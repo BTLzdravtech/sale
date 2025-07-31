@@ -35,5 +35,5 @@
         'data/res_partner_demo.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
 }
