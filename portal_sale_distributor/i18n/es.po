@@ -3,15 +3,16 @@
 # 	* portal_sale_distributor
 # 
 # Translators:
-# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
+# Lara Valeri, 2025
+# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-28 14:53+0000\n"
+"POT-Creation-Date: 2025-07-03 05:09+0000\n"
 "PO-Revision-Date: 2024-11-14 16:04+0000\n"
-"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
+"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -121,6 +122,12 @@ msgid "My Account"
 msgstr "Mi Cuenta"
 
 #. module: portal_sale_distributor
+#: model:ir.ui.menu,name:portal_sale_distributor.quotations
+#: model_terms:ir.ui.view,arch_db:portal_sale_distributor.sale_order_view_search_inherit_quotation_new
+msgid "My Quotations"
+msgstr "Presupuestos"
+
+#. module: portal_sale_distributor
 #: model:ir.model.fields,field_description:portal_sale_distributor.field_sale_order__activity_date_deadline
 msgid "Next Activity Deadline"
 msgstr "Fecha límite de la siguiente actividad"
@@ -132,21 +139,32 @@ msgid "Open"
 msgstr "Abierto"
 
 #. module: portal_sale_distributor
+#: model:ir.ui.menu,name:portal_sale_distributor.sale_order
+#: model:ir.ui.menu,name:portal_sale_distributor.sale_order_menu
+msgid "Order"
+msgstr "Pedido de venta"
+
+#. module: portal_sale_distributor
 #. odoo-python
 #: code:addons/portal_sale_distributor/models/sale_order.py:0
 msgid "Pedido confirmado por %s"
-msgstr ""
+msgstr "Pedido confirmado por %s"
 
 #. module: portal_sale_distributor
 #: model:ir.module.category,name:portal_sale_distributor.category_portal_distributor
 #: model:res.groups,name:portal_sale_distributor.group_portal_backend_distributor
 msgid "Portal Distributor"
-msgstr "Portal - Distributor"
+msgstr "Portal - Distribuidor"
 
 #. module: portal_sale_distributor
 #: model:ir.model,name:portal_sale_distributor.model_product_pricelist_item
 msgid "Pricelist Rule"
 msgstr "Regla de la lista de precios"
+
+#. module: portal_sale_distributor
+#: model_terms:ir.ui.view,arch_db:portal_sale_distributor.product_template_view_form
+msgid "Product"
+msgstr ""
 
 #. module: portal_sale_distributor
 #: model:ir.model,name:portal_sale_distributor.model_product_document
@@ -159,14 +177,14 @@ msgid "Product Variant"
 msgstr "Variante de producto"
 
 #. module: portal_sale_distributor
-#: model:ir.ui.menu,name:portal_sale_distributor.quotations
-msgid "Quotations"
-msgstr "Presupuestos"
-
-#. module: portal_sale_distributor
 #: model:ir.model.fields,field_description:portal_sale_distributor.field_product_document__attached_on_sale
 msgid "Sale : Visible at"
 msgstr "Ventas: visible en"
+
+#. module: portal_sale_distributor
+#: model:ir.ui.menu,name:portal_sale_distributor.order_lines
+msgid "Sale Order Lines"
+msgstr ""
 
 #. module: portal_sale_distributor
 #: model:ir.ui.menu,name:portal_sale_distributor.sale_menu
@@ -175,7 +193,6 @@ msgstr "Ventas"
 
 #. module: portal_sale_distributor
 #: model:ir.model,name:portal_sale_distributor.model_sale_order
-#: model:ir.ui.menu,name:portal_sale_distributor.sale_order
 msgid "Sales Order"
 msgstr "Pedido de venta"
 
@@ -183,3 +200,8 @@ msgstr "Pedido de venta"
 #: model:ir.model,name:portal_sale_distributor.model_sale_order_line
 msgid "Sales Order Line"
 msgstr "Línea de pedido de venta"
+
+#. module: portal_sale_distributor
+#: model_terms:ir.ui.view,arch_db:portal_sale_distributor.product_template_view_form
+msgid "e.g. Cheese Burger"
+msgstr ""

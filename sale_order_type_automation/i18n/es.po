@@ -3,15 +3,15 @@
 # 	* sale_order_type_automation
 # 
 # Translators:
-# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
+# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-05 15:22+0000\n"
+"POT-Creation-Date: 2025-08-08 19:11+0000\n"
 "PO-Revision-Date: 2024-11-21 14:40+0000\n"
-"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
+"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -165,7 +165,7 @@ msgstr "Automatización de entregas"
 #. module: sale_order_type_automation
 #: model:sale.order.type,name:sale_order_type_automation.sale_order_type_validate_picking_automation
 msgid "Picking Automation (Validate)"
-msgstr "Automatización de entregegas (Validate)"
+msgstr "Automatización de entregas (Validar)"
 
 #. module: sale_order_type_automation
 #: model:ir.model.fields,help:sale_order_type_automation.field_sale_order_type__picking_atomation
@@ -203,18 +203,15 @@ msgstr "La empresa de la secuencia y el almacén deben ser la misma"
 #. odoo-python
 #: code:addons/sale_order_type_automation/models/sale_order.py:0
 msgid ""
-"The following products are not available, we suggest to check stock or to use a sale type that force availability.\n"
+"The following products are not available, we suggest to check stock or to use a sale type that forces availability.\n"
 "Products:\n"
 "* %s\n"
-" "
 msgstr ""
-"Los siguientes productos no están disponibles, sugerimos consultar stock o utilizar algún tipo de venta que fuerce la disponibilidad.\n"
-"Productos:\n"
 
 #. module: sale_order_type_automation
 #: model:ir.model,name:sale_order_type_automation.model_stock_picking
 msgid "Transfer"
-msgstr "Traslado"
+msgstr "Transferir"
 
 #. module: sale_order_type_automation
 #: model:ir.model,name:sale_order_type_automation.model_sale_order_type

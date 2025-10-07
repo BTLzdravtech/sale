@@ -3,15 +3,16 @@
 # 	* sale_gathering_index
 # 
 # Translators:
-# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
+# Lara Valeri, 2025
+# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-10 17:39+0000\n"
+"POT-Creation-Date: 2025-08-06 14:01+0000\n"
 "PO-Revision-Date: 2024-12-10 17:39+0000\n"
-"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024\n"
+"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,20 +25,35 @@ msgstr ""
 #: code:addons/sale_gathering_index/models/sale_order_line.py:0
 msgid ""
 "\n"
-"(Current price: $%s | Coef: %s%%)"
+"(Current price: $%s | Coef: %s)"
 msgstr ""
 "\n"
-"(Precio actual: $%s | Coef: %s%%)"
+"(Precio actual: $%s | Coef: %s)"
 
 #. module: sale_gathering_index
-#: model_terms:ir.ui.view,arch_db:sale_gathering_index.report_saleorder_index
-msgid "<strong>Gathering Balance Indexed:</strong>"
+#: model_terms:ir.ui.view,arch_db:sale_gathering_index.report_saleorder_document_gathering
+msgid "% | <strong>Coef:</strong>"
 msgstr ""
 
 #. module: sale_gathering_index
-#: model_terms:ir.ui.view,arch_db:sale_gathering_index.report_saleorder_index
+#: model_terms:ir.ui.view,arch_db:sale_gathering_index.sale_gathering_totals
 msgid "<strong>Indexed Gathering Amount:</strong>"
-msgstr ""
+msgstr "<strong>Monto acopiado indexado:</strong>"
+
+#. module: sale_gathering_index
+#: model_terms:ir.ui.view,arch_db:sale_gathering_index.sale_gathering_totals
+msgid "<strong>Indexed Gathering Balance:</strong>"
+msgstr "<strong>Balance de acopio indexado:</strong>"
+
+#. module: sale_gathering_index
+#: model_terms:ir.ui.view,arch_db:sale_gathering_index.sale_gathering_totals
+msgid "<strong>Indexed Withdrawn Amount:</strong>"
+msgstr "<strong>Monto retirado indexado:</strong>"
+
+#. module: sale_gathering_index
+#: model_terms:ir.ui.view,arch_db:sale_gathering_index.report_saleorder_document_gathering
+msgid "<strong>Update Index:</strong>"
+msgstr "<strong>Índice de actualización:</strong>"
 
 #. module: sale_gathering_index
 #: model:ir.model.fields,help:sale_gathering_index.field_sale_order__gathering_balance_indexed
@@ -47,9 +63,17 @@ msgid ""
 msgstr ""
 
 #. module: sale_gathering_index
-#: model:ir.model.fields,field_description:sale_gathering_index.field_sale_order__gathering_balance_indexed
-msgid "Gathering Balance Indexed"
-msgstr "Balance de acopio indexado"
+#: model:ir.model.fields,field_description:sale_gathering_index.field_sale_order__coef
+msgid "Coef"
+msgstr ""
+
+#. module: sale_gathering_index
+#: model:ir.model.fields,help:sale_gathering_index.field_sale_order__coef
+msgid ""
+"Coeficiente inverso que se utiliza para estimar el precio de un producto "
+"canjeado a la fecha de confirmación del acopio. Para calcular el precio se "
+"toma el precio actual del producto y se lo divide por este coeficiente."
+msgstr ""
 
 #. module: sale_gathering_index
 #: model:ir.model.fields,field_description:sale_gathering_index.field_sale_order__index
@@ -60,6 +84,16 @@ msgstr "Índice"
 #: model:ir.model.fields,field_description:sale_gathering_index.field_sale_order__indexed_gathering_amount
 msgid "Indexed Gathering Amount"
 msgstr "Monto Acopiado indexado"
+
+#. module: sale_gathering_index
+#: model:ir.model.fields,field_description:sale_gathering_index.field_sale_order__gathering_balance_indexed
+msgid "Indexed Gathering Balance"
+msgstr "Balance de acopio indexado"
+
+#. module: sale_gathering_index
+#: model:ir.model.fields,field_description:sale_gathering_index.field_sale_order__indexed_withdrawn_amount
+msgid "Indexed Withdrawn Amount"
+msgstr "Monto retirado indexado"
 
 #. module: sale_gathering_index
 #: model:ir.model.fields,help:sale_gathering_index.field_sale_order__indexed_gathering_amount
@@ -79,6 +113,13 @@ msgid "Sales Order Line"
 msgstr "Línea de pedido de venta"
 
 #. module: sale_gathering_index
+#: model:ir.model.fields,help:sale_gathering_index.field_sale_order__index
+msgid ""
+"Variación de precio promedio de los productos acopiados. El mismo se calcula"
+" ponderando por cantidades acopiadas."
+msgstr ""
+
+#. module: sale_gathering_index
 #. odoo-python
 #: code:addons/sale_gathering_index/models/sale_order_line.py:0
 msgid ""
@@ -92,7 +133,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/sale_gathering_index/models/sale_order_line.py:0
 msgid "You can't modify the description."
-msgstr ""
+msgstr "No puedes modificar la descripción"
 
 #. module: sale_gathering_index
 #. odoo-python

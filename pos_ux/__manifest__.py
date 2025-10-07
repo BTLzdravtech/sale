@@ -1,23 +1,21 @@
 {
-    'name': 'Point of Sale UX',
-    'version': '16.0.1.0.0',
-    'category': 'Point of Sale',
-    'description': """
-This module extend functionality of point of sale .
-    """,
-    'depends': [
-        'l10n_ar_pos',
+    "name": "Point of Sale UX",
+    "version": "18.0.1.2.0",
+    "category": "Point of Sale",
+    "author": "ADHOC SA",
+    "depends": [
+        "point_of_sale",
     ],
-    'data': [
-        'views/pos_session_view.xml',
-        'views/res_config_settings_view.xml',
+    "data": [
+        "views/pos_session_view.xml",
+        "views/res_config_settings_view.xml",
     ],
-    'assets': {
-        'point_of_sale.assets': [
-            'pos_ux/static/src/**/*'
+    "assets": {
+        "point_of_sale._assets_pos": [
+            "pos_ux/static/src/**/*",
         ],
     },
-    'installable': False,
-    'auto_install': False,
-    'license': 'LGPL-3',
+    "installable": True,
+    "auto_install": False,
+    "license": "LGPL-3",
 }

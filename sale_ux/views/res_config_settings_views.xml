@@ -66,11 +66,20 @@
                         <label for="analytic_account_without_company"/>
                     </div>
                     <div class="text-muted">
-                        Al confirmar ventas, crear cuenta analitica sin compañía.
+                        Al confirmar ventas, crear un proyecto sin compañía.
+                    </div>
+                </div>
+                <div class="mt16">
+                    <div>
+                        <field name="auto_select_all_documents"/>
+                        <label for="auto_select_all_documents"/>
+                    </div>
+                    <div class="text-muted">
+                        Automatically select all available documents from PDF Quote Builder.
                     </div>
                 </div>
             </xpath>
-            <xpath expr="//block[@name='quotation_order_setting_container']" position="after">
+            <xpath expr="//block[@name='quotation_order_setting_container']" position="inside">
                 <setting id="cancel_old_quotations" string="Cancel Old Quotations">
                     <div class="text-muted">
                         <span>Cancel quotations older than</span>
@@ -78,6 +87,9 @@
                         <span>days.</span>
                     </div>
                     <strong>Sales</strong> <field name="cancel_old_quotations" style="margin-left:5px;"/>
+                </setting>
+                <setting id="group_delivery_date" help="Shows the delivery date field in the budget report and in the online budget." title="Shows the delivery date field in the budget report and in the online budget.">
+                    <field name="group_delivery_date"/>
                 </setting>
             </xpath>
         </field>

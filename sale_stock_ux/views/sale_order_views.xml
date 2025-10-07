@@ -24,9 +24,9 @@
                 <field name="delivery_status" column_invisible="True"/>
                 <button name="button_cancel_remaining"
                         type="object"
-                        title="Cancel remaining quanitity to be delivered. This will set line quantity equal to delivered qty and will cancel remaining moves" 
+                        title="Cancel remaining quanitity to be delivered. This will set line quantity equal to delivered qty and will cancel remaining moves"
                         icon="fa-ban"
-                        confirm="This will set line quantity equal to delivery qty and will cancel remaining moves. This can not be undone. Are you sure you want to continue?" 
+                        confirm="This will set line quantity equal to delivery qty and will cancel remaining moves. This can not be undone. Are you sure you want to continue?"
                         invisible="delivery_status != 'to deliver'"
                         groups="sales_team.group_sale_salesman"
                         context="{'cancel_from_order': True}"/>
@@ -41,6 +41,7 @@
 
             <xpath expr="//page/field[@name='order_line']/list/field[@name='product_uom_qty']" position="after">
                 <field name="total_reserved_quantity" column_invisible="True"/>
+                <field name="stock_by_location" force_save="1" column_invisible="1"/>
             </xpath>
         </field>
     </record>
@@ -56,7 +57,7 @@
             <filter domain="[('invoice_status','=','to invoice')]" position="before">
                 <separator/>
                 <filter name="with_returns" string="With Returns" domain="[('with_returns','=', True)]" help="Pedidos de venta con devoluciones facturables"/>
-                <filter name="to_deliver" string="To Deliver" domain="['|', ('delivery_status','=', 'partial'), ('delivery_status','=', 'pending')]" help="Sale orders that include lines not delivered."/>
+                <filter name="to_deliver" string="To Deliver" domain="['|', '|', ('delivery_status','=', 'partial'), ('delivery_status','=', 'pending'), ('delivery_status','=', 'started')]" help="Sale orders that include lines not delivered."/>
                 <filter name="delivered" string="Fully Delivered" domain="[('delivery_status','=', 'full')]" help="Sale orders with all lines delivered."/>
                 <separator/>
             </filter>

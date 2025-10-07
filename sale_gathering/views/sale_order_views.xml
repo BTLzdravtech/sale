@@ -5,6 +5,11 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+            <div name="button_box" position="before">
+                <div class="ribbon ribbon-top-right" invisible="not is_gathering">
+                    <span class="bg-warning">Acopio</span>
+                </div>
+            </div>
             <field name="client_order_ref" position="before">
                 <field name="is_gathering" readonly="state in ['done', 'sale']"/>
             </field>
@@ -16,18 +21,22 @@
             </button>
             <button name="%(sale.action_view_sale_advance_payment_inv)d" position="after">
                 <field name="has_gathering_invoice" invisible="1"/>
-                <button name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Gathering Invoice" type="action" context="{'default_advance_payment_method': 'percentage', 'default_amount': 100}" invisible="not is_gathering or state != 'sale' or has_gathering_invoice"/>
+                <button name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Gathering Invoice" type="action" context="{'default_advance_payment_method': 'fixed', 'default_fixed_amount': gathering_amount_with_taxes}" invisible="not is_gathering or state != 'sale' or has_gathering_invoice"/>
             </button>
             <group name="sale_total" position="inside">
                 <table class="float-end">
                     <tbody>
-                        <tr>
-                            <td> <label for="gathering_amount"/> </td>
-                            <td> <field name="gathering_amount" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="not is_gathering"/> </td>
+                        <tr invisible="not is_gathering">
+                            <td> <label for="gathering_amount_with_taxes"/> </td>
+                            <td> <field name="gathering_amount_with_taxes" widget="monetary" options="{'currency_field': 'currency_id'}"/> </td>
                         </tr>
-                        <tr>
+                        <tr invisible="not is_gathering">
+                            <td> <label for="withdrawn_amount"/> </td>
+                            <td> <field name="withdrawn_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/> </td>
+                        </tr>
+                        <tr invisible="not is_gathering">
                             <td> <label for="gathering_balance"/> </td>
-                            <td> <field name="gathering_balance" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="not is_gathering"/> </td>
+                            <td> <field name="gathering_balance" widget="monetary" options="{'currency_field': 'currency_id'}"/> </td>
                         </tr>
                     </tbody>
                 </table>
@@ -35,6 +44,9 @@
             <xpath expr="//field[@name='order_line']/list//field[@name='product_uom_qty']" position="after">
                 <field name="initial_qty_gathered" force_save="1" readonly="1" column_invisible="not parent.is_gathering"/>
             </xpath>
+            <field name="tax_totals" position="attributes">
+                <attribute name="invisible">is_gathering and state == 'sale'</attribute>
+            </field>
         </field>
     </record>
 

@@ -3,16 +3,19 @@
 # 	* sale_ux
 # 
 # Translators:
-# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
 # Rocio Vega, 2024
+# María Florencia Frigieri Parma, 2025
+# Franco Leyes, 2025
+# Matias Peralta, 2025
+# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-05 20:56+0000\n"
+"POT-Creation-Date: 2025-08-22 18:42+0000\n"
 "PO-Revision-Date: 2024-11-11 12:22+0000\n"
-"Last-Translator: Rocio Vega, 2024\n"
+"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,7 +40,7 @@ msgstr "<strong>Ventas</strong>"
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
-msgid "Al confirmar ventas, crear cuenta analitica sin compañía."
+msgid "Al confirmar ventas, crear un proyecto sin compañía."
 msgstr ""
 
 #. module: sale_ux
@@ -50,6 +53,17 @@ msgstr "Permitir cualquier usuario como comercial"
 #: model:ir.model,name:sale_ux.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "Cuenta analítica"
+
+#. module: sale_ux
+#: model:ir.model.fields,field_description:sale_ux.field_res_config_settings__auto_select_all_documents
+msgid "Auto-select all documents"
+msgstr ""
+
+#. module: sale_ux
+#: model:ir.model.fields,help:sale_ux.field_res_config_settings__auto_select_all_documents
+#: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
+msgid "Automatically select all available documents from PDF Quote Builder."
+msgstr ""
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
@@ -111,9 +125,19 @@ msgid "Confirm"
 msgstr "Confirmar"
 
 #. module: sale_ux
+#: model:ir.actions.server,name:sale_ux.action_confirm_sale_order
+msgid "Confirm sale order"
+msgstr "Confirmar pedido de venta"
+
+#. module: sale_ux
+#: model:ir.model,name:sale_ux.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: sale_ux
 #: model:ir.model.fields,field_description:sale_ux.field_res_config_settings__analytic_account_without_company
-msgid "Crear cuenta analitica sin compañía"
-msgstr ""
+msgid "Crear proyecto y cuenta analitica sin compañia"
+msgstr "Crear cuenta analitica sin compañía"
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.view_sales_order_filter
@@ -164,6 +188,16 @@ msgstr "Los días para mantener los presupuestos deben ser mayor que 0."
 #: model:ir.model.fields,field_description:sale_ux.field_account_fiscal_position__deduct_price_included_taxes
 msgid "Deduct Price-Included Taxes"
 msgstr "Deducir impuestos incluidos en el precio"
+
+#. module: sale_ux
+#: model:ir.model,name:sale_ux.model_ir_default
+msgid "Default Values"
+msgstr "Valores por defecto"
+
+#. module: sale_ux
+#: model_terms:ir.ui.view,arch_db:sale_ux.sale_order_portal_content
+msgid "Delivery Date:"
+msgstr "Fecha de Entrega:"
 
 #. module: sale_ux
 #: model:ir.model.fields,field_description:sale_ux.field_sale_order_global_discount_wizard__amount
@@ -282,12 +316,12 @@ msgstr "Última actualización el"
 #. module: sale_ux
 #: model:ir.model.fields,field_description:sale_ux.field_res_config_settings__move_internal_notes
 msgid "Mover notas internas a transferencias de stock y facturas"
-msgstr ""
+msgstr "Mover notas internas a transferencias de stock y facturas"
 
 #. module: sale_ux
 #: model:ir.model.fields,field_description:sale_ux.field_res_config_settings__move_note
 msgid "Mover términos y condiciones a transferencias de stock y facturas"
-msgstr ""
+msgstr "Mover términos y condiciones a transferencias de stock y facturas"
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.view_sales_order_line_filter
@@ -319,6 +353,11 @@ msgstr "Fecha de pedido"
 #: model:ir.model.fields,field_description:sale_ux.field_sale_order__payment_term_id
 msgid "Payment Terms"
 msgstr "Condiciones de pago"
+
+#. module: sale_ux
+#: model:ir.model.fields,field_description:sale_ux.field_sale_order_line__categ_id
+msgid "Product Category"
+msgstr "Categoría del producto"
 
 #. module: sale_ux
 #: model:ir.model,name:sale_ux.model_product_product
@@ -396,6 +435,23 @@ msgid "Sales Orders"
 msgstr "Pedidos de Venta"
 
 #. module: sale_ux
+#: model:ir.model,name:sale_ux.model_crm_team
+#: model:ir.model.fields,field_description:sale_ux.field_sale_order_line__team_id
+msgid "Sales Team"
+msgstr "Equipo de ventas"
+
+#. module: sale_ux
+#: model:ir.model.fields,field_description:sale_ux.field_crm_team__member_ids
+msgid "Salespersons"
+msgstr "Comerciales"
+
+#. module: sale_ux
+#: model:ir.model.fields,field_description:sale_ux.field_res_config_settings__group_delivery_date
+#: model:res.groups,name:sale_ux.group_delivery_date_on_report_online
+msgid "Show Delivery Date in Quotations report and online budget"
+msgstr ""
+
+#. module: sale_ux
 #: model:ir.model.fields,field_description:sale_ux.field_res_config_settings__show_product_image_on_report
 msgid "Show Product Image"
 msgstr "Mostrar Imagen del Producto"
@@ -403,7 +459,7 @@ msgstr "Mostrar Imagen del Producto"
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
 msgid "Show Product Image on quotation report"
-msgstr ""
+msgstr "Mostrar imagen del producto en las cotizaciones"
 
 #. module: sale_ux
 #: model:res.groups,name:sale_ux.group_reference_on_tree_and_main_form
@@ -420,10 +476,19 @@ msgstr ""
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
 msgid ""
+"Shows the delivery date field in the budget report and in the online budget."
+msgstr ""
+
+#. module: sale_ux
+#: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
+msgid ""
 "Si marca esta opción y hay un valor definido en \"términos y condiciones\", "
 "el mismo se va a copiar en las facturas o transferencias que se generen "
 "desde esta venta."
 msgstr ""
+"Si marca esta opción y hay un valor definido en \"términos y condiciones\", "
+"el mismo se va a copiar en las facturas o transferencias que se generen "
+"desde esta venta."
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.res_config_settings_view_form_inherit
@@ -432,6 +497,9 @@ msgid ""
 "mismo se va a copiar en las facturas o transferencias que se generen desde "
 "esta venta."
 msgstr ""
+"Si marca esta opción y hay un valor definido en las \"notas internas\", el "
+"mismo se va a copiar en las facturas o transferencias que se generen desde "
+"esta venta."
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.view_sales_order_line_filter
@@ -441,12 +509,12 @@ msgstr "Estado"
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.view_order_form
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #. module: sale_ux
 #: model:ir.model.fields,field_description:sale_ux.field_sale_advance_payment_inv__tax_ids
 msgid "Taxes"
-msgstr ""
+msgstr "Impuestos"
 
 #. module: sale_ux
 #. odoo-python
@@ -456,10 +524,36 @@ msgstr ""
 "Esta cotización ha sido cancelada automáticamente debido a su vencimiento."
 
 #. module: sale_ux
+#. odoo-python
+#: code:addons/sale_ux/models/sale_order.py:0
+msgid "This sale order was duplicated from %s"
+msgstr "Esta orden fue duplicada de %s"
+
+#. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.sale_order_line_usability_tree
 #: model_terms:ir.ui.view,arch_db:sale_ux.view_order_form
 msgid "Total"
+msgstr "Total"
+
+#. module: sale_ux
+#: model:ir.model.fields,help:sale_ux.field_sale_order__amount_to_invoice
+msgid ""
+"Total amount available for invoicing according to the invoice policy for "
+"each sale order line.Down payments are not included in this calculation."
 msgstr ""
+"Importe total disponible para facturación según la política de facturación "
+"de cada línea de pedido de venta.Los anticipos no están incluidos en este "
+"cálculo."
+
+#. module: sale_ux
+#: model:ir.model.fields,field_description:sale_ux.field_sale_order__amount_uninvoiced
+msgid "Un-invoiced"
+msgstr "No facturado"
+
+#. module: sale_ux
+#: model:ir.model.fields,field_description:sale_ux.field_sale_order__amount_to_invoice
+msgid "Un-invoiced Balance"
+msgstr "Saldo no facturado"
 
 #. module: sale_ux
 #. odoo-python
@@ -470,6 +564,12 @@ msgid ""
 msgstr ""
 "No se puede cancelar esta orden de venta. Primero debe cancelar las facturas"
 " y transferencias relacionados."
+
+#. module: sale_ux
+#: model:ir.model.fields,help:sale_ux.field_sale_order__amount_uninvoiced
+msgid "Uninvoiced amount, regardless of invoice policy."
+msgstr ""
+"Importe no facturado, independientemente de la política de facturación."
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.sale_order_line_usability_tree
@@ -487,6 +587,11 @@ msgid "Update Prices Automatically"
 msgstr "Actualizar precios automáticamente"
 
 #. module: sale_ux
+#: model:ir.model.fields,help:sale_ux.field_crm_team__member_ids
+msgid "Users assigned to this team."
+msgstr "Usuarios asignados a este equipo."
+
+#. module: sale_ux
 #. odoo-python
 #: code:addons/sale_ux/wizards/sale_advance_payment_inv.py:0
 msgid "You can only set amount total if taxes are of type percentage"
@@ -498,20 +603,15 @@ msgstr ""
 #. odoo-python
 #: code:addons/sale_ux/models/sale_order_line.py:0
 msgid "You cannot add lines to blocked sale orders."
-msgstr ""
+msgstr "No puede agregar líneas a órdenes de venta bloqueadas."
 
 #. module: sale_ux
 #. odoo-python
 #: code:addons/sale_ux/models/sale_order.py:0
 msgid "You cannot modify already locked orders."
-msgstr ""
+msgstr "No puedes modificar pedidos de venta ya bloqueados."
 
 #. module: sale_ux
 #: model_terms:ir.ui.view,arch_db:sale_ux.view_sale_order_global_discount_wizard_form
 msgid "or"
 msgstr "o"
-
-#. module: academic_sale_subscription
-#: model:ir.actions.server,name:academic_sale_subscription.model_sale_order_subscription_change_customer
-msgid "Confirm sale order"
-msgstr "Confirmar pedido de venta"
