@@ -1,6 +1,5 @@
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
-from odoo.tools import float_compare
+from odoo.exceptions import ValidationError
 
 
 class SaleOrder(models.Model):
@@ -67,11 +66,7 @@ class SaleOrder(models.Model):
     def _get_invoiceable_lines(self, final=False):
         """Return the invoiceable lines for order `self`."""
         invoiceable_lines = super()._get_invoiceable_lines(final=final)
-        product_precision_digits = self.env["decimal.precision"].precision_get("Product Price")
-        for rec in self.filtered(
-            lambda x: x.is_gathering
-            and float_compare(x.gathering_balance, 0.0, precision_digits=product_precision_digits) >= 0
-        ):
+        for rec in self.filtered(lambda x: x.is_gathering and x.gathering_balance >= -1.0):
             for line in rec.order_line.filtered("is_downpayment"):
                 if final:
                     invoiceable_lines |= line
@@ -141,26 +136,8 @@ class SaleOrder(models.Model):
             rec.withdrawn_amount = rec.gathering_amount_with_taxes - rec.gathering_balance
         (self - orders).withdrawn_amount = 0.0
 
-    def write(self, values):
-        protected_fields = self._get_protected_fields()
-        if any(state in ["sale", "done"] for state in self.mapped("state")) and any(
-            f in values.keys() for f in protected_fields
-        ):
-            protected_fields_modified = list(set(protected_fields) & set(values.keys()))
-            fields = (
-                self.env["ir.model.fields"]
-                .sudo()
-                .search([("name", "in", protected_fields_modified), ("model", "=", self._name)])
-            )
-            if fields:
-                raise UserError(
-                    _("It is forbidden to modify the following fields in a confirmed order:\n%s")
-                    % "\n".join(fields.mapped("field_description"))
-                )
-        return super().write(values)
-
     def _get_protected_fields(self):
-        return ["is_gathering"]
+        return super()._get_protected_fields() + ["is_gathering"]
 
     def _create_account_invoices(self, invoice_vals_list, final):
         invoices = super()._create_account_invoices(invoice_vals_list, final)
