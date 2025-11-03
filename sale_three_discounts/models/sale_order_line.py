@@ -33,14 +33,17 @@ class SaleOrderLine(models.Model):
                 raise ValidationError(_(",".join(error) + " must be less or equal than 100"))
 
     def _compute_discount(self):
-        # we do not want override discounts if the pricelist is configured to include the discount in the price.
-        lines_show_discount = self.filtered(lambda x: x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
-        super(SaleOrderLine, lines_show_discount)._compute_discount()
-        if self.env.context.get("recompute_prices") or lines_show_discount:
-            for line in self:
-                line.discount1 = line.discount
-                line.discount2 = 0.0
-                line.discount3 = 0.0
+        if self.env.company.country_id.code == 'AR':
+            # we do not want override discounts if the pricelist is configured to include the discount in the price.
+            lines_show_discount = self.filtered(lambda x: x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
+            super(SaleOrderLine, lines_show_discount)._compute_discount()
+            if self.env.context.get("recompute_prices") or lines_show_discount:
+                for line in self:
+                    line.discount1 = line.discount
+                    line.discount2 = 0.0
+                    line.discount3 = 0.0
+        else:
+            super()._compute_discount()
 
     @api.onchange("discount1", "discount2", "discount3")
     def _onchange_discounts(self):
@@ -52,5 +55,6 @@ class SaleOrderLine(models.Model):
 
     def _prepare_invoice_line(self, **optional_values):
         res = super()._prepare_invoice_line(**optional_values)
-        res.update({"discount1": self.discount1, "discount2": self.discount2, "discount3": self.discount3})
+        if self.env.company.country_id.code == 'AR':
+            res.update({"discount1": self.discount1, "discount2": self.discount2, "discount3": self.discount3})
         return res

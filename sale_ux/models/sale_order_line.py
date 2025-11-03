@@ -24,12 +24,14 @@ class SaleOrderLine(models.Model):
         _get_to_invoice_qty
         """
         super()._compute_invoice_status()
-        for line in self:
-            # solo seteamos facturado si en sale o done
-            if line.order_id.state not in ["sale", "done"]:
-                continue
-            if line.order_id.force_invoiced_status:
-                line.invoice_status = line.order_id.force_invoiced_status
+        if self.env.company.country_id.code == 'AR':
+            for line in self:
+                # solo seteamos facturado si en sale o done
+                if line.order_id.state not in ["sale", "done"]:
+                    continue
+                if line.order_id.force_invoiced_status:
+                    line.invoice_status = line.order_id.force_invoiced_status
+
 
     def action_sale_history(self):
         self.ensure_one()
@@ -45,8 +47,9 @@ class SaleOrderLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         lines = super().create(vals_list)
-        if lines.filtered(lambda x: x.order_id and x.order_id.state == "done"):
-            raise ValidationError(_("You cannot add lines to blocked sale orders."))
+        if self.env.company.country_id.code == 'AR':
+            if lines.filtered(lambda x: x.order_id and x.order_id.state == "done"):
+                raise ValidationError(_("You cannot add lines to blocked sale orders."))
         return lines
 
     def _get_protected_fields(self):

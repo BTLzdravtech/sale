@@ -26,30 +26,31 @@ class AccountMove(models.Model):
     # Evaluar en proximas verciones si Odoo lo resuelve
     def action_post(self):
         res = super(AccountMove, self).action_post()
-        downpayment_lines = self.line_ids.sale_line_ids.filtered(lambda l: l.is_downpayment and not l.display_type)
-        for downpayment_line in downpayment_lines:
-            # When change currency in downpayment
-            if self.currency_id != downpayment_line.currency_id:
-                downpayment_line.price_unit = self.currency_id._convert(
-                    downpayment_line.price_unit,
-                    downpayment_line.currency_id,
-                    self.company_id,
-                    self.invoice_date or fields.Date.today(),
-                )
-            # When change company in downpayment
-            if downpayment_line.company_id != self.company_id:
-                taxes = downpayment_line.tax_id
-                # Buscamos el correcto tax para la compañia sobre la cual estoy vendiendo, siendo
-                # esta distinta a la de la factura de anticipo
-                correct_company_tax = self.env["account.tax"].search(
-                    [
-                        ("company_id", "=", downpayment_line.company_id.id),
-                        ("type_tax_use", "in", taxes.mapped("type_tax_use")),
-                        ("company_price_include", "in", taxes.mapped("company_price_include")),
-                        ("amount", "in", taxes.mapped("amount")),
-                        ("amount_type", "in", taxes.mapped("amount_type")),
-                    ]
-                )
-                tax = correct_company_tax or False
-                downpayment_line.tax_id = tax
+        if self.env.company.country_id.code == 'AR':
+            downpayment_lines = self.line_ids.sale_line_ids.filtered(lambda l: l.is_downpayment and not l.display_type)
+            for downpayment_line in downpayment_lines:
+                # When change currency in downpayment
+                if self.currency_id != downpayment_line.currency_id:
+                    downpayment_line.price_unit = self.currency_id._convert(
+                        downpayment_line.price_unit,
+                        downpayment_line.currency_id,
+                        self.company_id,
+                        self.invoice_date or fields.Date.today(),
+                    )
+                # When change company in downpayment
+                if downpayment_line.company_id != self.company_id:
+                    taxes = downpayment_line.tax_id
+                    # Buscamos el correcto tax para la compañia sobre la cual estoy vendiendo, siendo
+                    # esta distinta a la de la factura de anticipo
+                    correct_company_tax = self.env["account.tax"].search(
+                        [
+                            ("company_id", "=", downpayment_line.company_id.id),
+                            ("type_tax_use", "in", taxes.mapped("type_tax_use")),
+                            ("company_price_include", "in", taxes.mapped("company_price_include")),
+                            ("amount", "in", taxes.mapped("amount")),
+                            ("amount_type", "in", taxes.mapped("amount_type")),
+                        ]
+                    )
+                    tax = correct_company_tax or False
+                    downpayment_line.tax_id = tax
         return res

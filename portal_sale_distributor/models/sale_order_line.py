@@ -9,5 +9,8 @@ class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
     def _compute_purchase_price(self):
-        self = self.sudo()
-        super()._compute_purchase_price()
+        if self.env.company.country_id.code == 'AR':
+            self = self.sudo()
+            super()._compute_purchase_price()
+        else:
+            super()._compute_purchase_price()

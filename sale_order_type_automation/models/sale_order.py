@@ -93,18 +93,24 @@ class SaleOrder(models.Model):
             self._process_pickings(prev_pending=pending_final)
 
     def action_confirm(self):
-        res = super().action_confirm()
-        # we use this because compatibility with sale exception module
-        if isinstance(res, bool) and res:
-            # because it's needed to return actions if exists
-            res = self.run_picking_automation()
-            self.sudo().run_invoicing_atomation()
-            if self.type_id.set_done_on_confirmation:
-                self.action_lock()
-        return res
+        if self.env.company.country_code == 'AR':
+            res = super().action_confirm()
+            # we use this because compatibility with sale exception module
+            if isinstance(res, bool) and res:
+                # because it's needed to return actions if exists
+                res = self.run_picking_automation()
+                self.sudo().run_invoicing_atomation()
+                if self.type_id.set_done_on_confirmation:
+                    self.action_lock()
+            return res
+        else:
+            return super().action_confirm()
 
     def _prepare_invoice(self):
-        res = super()._prepare_invoice()
-        if (self.type_id.payment_atomation != "none") and self.type_id.payment_journal_id:
-            res["pay_now_journal_id"] = self.type_id.payment_journal_id.id
-        return res
+        if self.env.company.country_code == 'AR':
+            res = super()._prepare_invoice()
+            if (self.type_id.payment_atomation != "none") and self.type_id.payment_journal_id:
+                res["pay_now_journal_id"] = self.type_id.payment_journal_id.id
+            return res
+        else:
+            return super()._prepare_invoice()

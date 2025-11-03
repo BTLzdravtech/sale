@@ -46,11 +46,12 @@ class SaleOrder(models.Model):
                 )
 
     def action_confirm(self):
-        for rec in self.filtered("is_expired"):
-            raise UserError(
-                _("You can not confirm this quotation as it was valid until" " %s! Please update validity.")
-                % (rec.validity_date)
-            )
+        if self.env.company.country_id.code == 'AR':
+            for rec in self.filtered("is_expired"):
+                raise UserError(
+                    _("You can not confirm this quotation as it was valid until" " %s! Please update validity.")
+                    % (rec.validity_date)
+                )
         return super().action_confirm()
 
     def update_date_prices_and_validity(self):
