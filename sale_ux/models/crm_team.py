@@ -5,6 +5,7 @@ class CrmTeam(models.Model):
     _inherit = "crm.team"
 
     def _domain_member_ids(self):
+        # TODO: Odoo BTL - needs to be locked on AR company
         if self.env.user.has_group("sale_ux.group_allow_any_user_as_salesman"):
             return []
         else:

@@ -56,6 +56,7 @@ class SaleOrderLine(models.Model):
         return super()._get_protected_fields() + ["discount"]
 
     def _compute_discount(self):
+        # TODO: Odoo BTL - needs to be locked on AR company
         lines = self.filtered(lambda x: not (x.order_id.pricelist_id and x.pricelist_item_id._show_discount()))
         super(SaleOrderLine, self - lines)._compute_discount()
 
@@ -64,6 +65,7 @@ class SaleOrderLine(models.Model):
         # Fix multicompañía: si se cambia la compañía de una factura de anticipo con el wizard de change company,
         # luego al facturar el resto se puede usar una cuenta contable de la compañía incorrecta.
 
+        # TODO: Odoo BTL - needs to be locked on AR company
         downpayment_lines = self.invoice_lines.filtered("is_downpayment")
         account_id = res.get("account_id") and self.env["account.account"].browse(res["account_id"]) or None
 

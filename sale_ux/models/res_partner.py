@@ -12,6 +12,7 @@ class ResPartner(models.Model):
         # utilizarán el fallback por orden de secuencia, permitiendo que los cambios
         # de prioridad en las listas de precios se reflejen dinámicamente
 
+        # TODO: Odoo BTL - needs to be locked on AR company
         partners = super().create(vals_list)
         # Buscamos primera lista en secuencia porque los default no los tenemos cargados aun. Por eso usamos este hack
         pricelist = self.env["product.pricelist"].search([], limit=1, order="sequence")

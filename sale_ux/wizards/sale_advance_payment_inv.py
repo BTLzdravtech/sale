@@ -24,6 +24,7 @@ class SaleAdvancePaymentInvWizard(models.TransientModel):
 
     @api.onchange("amount_total", "tax_ids")
     def _inverse_amount_total(self):
+        # TODO: Odoo BTL - needs to be locked on AR company
         self.ensure_one()
         sale_obj = self.env["sale.order"]
         order = sale_obj.browse(self._context.get("active_ids"))[0]
@@ -61,6 +62,7 @@ class SaleAdvancePaymentInvWizard(models.TransientModel):
 
     def _create_invoice(self, order, so_line, amount):
         invoice = super()._create_invoice(order=order, so_line=so_line, amount=amount)
+        # TODO: Odoo BTL - needs to be locked on AR company
         propagate_internal_notes = (
             self.env["ir.config_parameter"].sudo().get_param("sale.propagate_internal_notes") == "True"
         )

@@ -13,6 +13,7 @@ from odoo.tools.safe_eval import safe_eval
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    # TODO: Odoo BTL - field name conflict with BTL code, must be renamed
     internal_notes = fields.Html()
     payment_term_id = fields.Many2one(
         tracking=True,
@@ -92,6 +93,7 @@ class SaleOrder(models.Model):
         No utilizamos el método action_update_taxes() directamente porque no funciona
         el message_post sin que se encuentre guardado el registro.
         """
+        # TODO: Odoo BTL - needs to be locked on AR company
         self.ensure_one()
         lines_to_recompute = self.order_line.filtered(lambda line: not line.display_type)
         lines_to_recompute._compute_tax_id()
@@ -169,6 +171,7 @@ class SaleOrder(models.Model):
 
     def _get_update_prices_lines(self):
         lines = super()._get_update_prices_lines()
+        # TODO: Odoo BTL - needs to be locked on AR company
         lines_to_not_update_ids = self._context.get("lines_to_not_update_ids", [])
         return lines.filtered(lambda l: l.id not in lines_to_not_update_ids)
 
@@ -179,6 +182,7 @@ class SaleOrder(models.Model):
         super().action_update_prices()
 
     def _create_invoices(self, grouped=False, final=False, date=None):
+        # TODO: Odoo BTL - needs to be locked on AR company
         invoices = super()._create_invoices(grouped=grouped, final=final, date=date)
         precision = self.env["decimal.precision"].precision_get("Product Unit of Measure")
         filtered_invoices = invoices.filtered(
@@ -192,11 +196,13 @@ class SaleOrder(models.Model):
     def action_preview_sale_order(self):
         """Open sale Preview in a new Tab"""
         res = super().action_preview_sale_order()
+        # TODO: Odoo BTL - needs to be locked on AR company
         res.update({"target": "new"})
         return res
 
     def _get_invoiceable_lines(self, final=False):
         """Remove if user allow to remove all notes for invoiceable lines"""
+        # TODO: Odoo BTL - needs to be locked on AR company
         dont_send_notes_to_invoices = (
             self.env["ir.config_parameter"].sudo().get_param("sale_ux.dont_send_notes_to_invoices", "False") == "True"
         )
@@ -207,6 +213,7 @@ class SaleOrder(models.Model):
         return res
 
     def _prepare_analytic_account_data(self, prefix=None):
+        # TODO: Odoo BTL - needs to be locked on AR company
         if (
             self.env["ir.config_parameter"].sudo().get_param("sale_ux.analytic_account_without_company", "False")
             == "True"
@@ -233,6 +240,7 @@ class SaleOrder(models.Model):
             today = fields.Date.today()
             days_to_keep = int(self.env["ir.config_parameter"].sudo().get_param("sale_ux.days_to_keep_quotations", 30))
             oldest_date = today - timedelta(days=days_to_keep)
+            # TODO: Odoo BTL - domain must be edited so it processes only AR invoices
             domain = [
                 ("state", "in", ["draft", "sent"]),
                 ("date_order", "<", oldest_date),
@@ -249,10 +257,12 @@ class SaleOrder(models.Model):
 
     @api.constrains("pricelist_id")
     def _check_changes_locked_orders(self):
+        # TODO: Odoo BTL - needs to be locked on AR company
         for rec in self.filtered(lambda x: x.state == "done"):
             raise ValidationError(_("You cannot modify already locked orders."))
 
     def get_update_included_pdf_params(self):
+        # TODO: Odoo BTL - needs to be locked on AR company
         result = super().get_update_included_pdf_params()
         auto_select_enabled = (
             self.env["ir.config_parameter"].sudo().get_param("sale_ux.auto_select_all_documents", "False") == "True"
@@ -286,6 +296,7 @@ class SaleOrder(models.Model):
         return result
 
     def copy(self, default=None):
+        # TODO: Odoo BTL - needs to be locked on AR company
         default = dict(default or {})
         new_orders = super().copy(default)
         bodies = {}
