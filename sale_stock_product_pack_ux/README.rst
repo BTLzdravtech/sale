@@ -11,41 +11,29 @@
    :alt: License: AGPL-3
 
 ==========================
-Sale Order Type Automation
+Sale Stock Product Pack UX
 ==========================
 
-#. Add to sale order type this options to be executed automatically on sale order confirmation and picking confimation:
+This module acts as a bridge between ``sale_stock_ux`` and ``sale_stock_product_pack`` modules.
 
-    * Create / Validate Invoice
-      * New domain to filter invoices for automatic validation. So, if this filter does NOT find the invoices, they stay in drafts status.
-    * Create / Validate Payment
-    * Confirm picking and products transfer (only on sale order confirmation)
-
+It fixes the calculation of ``quantity_returned`` field for product pack parent lines to ensure proper credit note generation when returning packed products.
 
 Installation
 ============
 
 To install this module, you need to:
 
-#. Just install
-
+#. Just install.
 
 Configuration
 =============
 
-To configure this module, you need to set automation options on sale order type
-
+#. No configuration needed.
 
 Usage
 =====
 
-To use this module, you need to:
-
-#. To use must be select an "sale order type" who has the configuration that you need, then clik in confirm sale.
-
-.. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
-   :alt: Try me on Runbot
-   :target: http://runbot.adhoc.com.ar/
+#. Just use.
 
 Bug Tracker
 ===========

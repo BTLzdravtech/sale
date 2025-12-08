@@ -2,8 +2,13 @@
 # For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.safe_eval import (
+    datetime as safe_eval_datetime,
+    dateutil as safe_eval_dateutil,
+    safe_eval,
+)
 
 
 class SaleOrder(models.Model):
@@ -16,31 +21,44 @@ class SaleOrder(models.Model):
             # we take into account if there are any transaction finish from the e-commerce
             #  and not continue with the automation in this case
             if (
-                self.transaction_ids
-                and self.env["ir.config_parameter"].sudo().get_param("sale.automatic_invoice")
-                and any([True if transaction.state == "done" else False for transaction in self.transaction_ids])
+                rec.transaction_ids
+                and rec.env["ir.config_parameter"].sudo().get_param("sale.automatic_invoice")
+                and any([True if transaction.state == "done" else False for transaction in rec.transaction_ids])
             ):
                 continue
             # a list is returned but only one invoice should be returned
             # usamos final para que reste adelantos y tmb por ej
             # por si se usa el modulo de facturar las returns
-            invoices = self._create_invoices(final=True)
+            invoices = rec._create_invoices(final=True)
             if not invoices:
                 continue
             if rec.type_id.invoicing_atomation == "validate_invoice":
-                if self._context.get("commit_invoice_automation"):
+                if rec._context.get("commit_invoice_automation"):
                     rec.env.cr.commit()
                 try:
-                    invoices.sudo().action_post()
-                    if (
-                        invoices.name
-                        and not invoices.line_ids.mapped("move_name")
-                        and invoices.name not in invoices.line_ids.mapped("move_name")
-                    ):
-                        invoices.env.add_to_compute(invoices.line_ids._fields["move_name"], invoices.line_ids)
+                    if rec.type_id.invoice_validate_domain:
+                        domain = safe_eval(
+                            rec.type_id.invoice_validate_domain,
+                            {
+                                "datetime": safe_eval_datetime,
+                                "context_today": lambda: fields.Date.context_today(rec),
+                                "relativedelta": safe_eval_dateutil.relativedelta.relativedelta,
+                            },
+                        )
+                        invoices_to_validate = invoices.filtered_domain(domain)
+                    else:
+                        invoices_to_validate = invoices
+                    invoices_to_validate.sudo().action_post()
+                    for invoice in invoices_to_validate:  # to avoid "expected singleton" error
+                        if (
+                            invoice.name
+                            and not invoice.line_ids.mapped("move_name")
+                            and invoice.name not in invoice.line_ids.mapped("move_name")
+                        ):
+                            invoice.env.add_to_compute(invoice.line_ids._fields["move_name"], invoice.line_ids)
                 except Exception as error:
                     rec.env.cr.rollback()
-                    if not self._context.get("commit_invoice_automation"):
+                    if not rec._context.get("commit_invoice_automation"):
                         raise error
                     message = _(
                         "We couldn't validate the automatically created "

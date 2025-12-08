@@ -57,7 +57,10 @@ class SaleOrderLine(models.Model):
 
     def _compute_discount(self):
         # TODO: Odoo BTL - needs to be locked on AR company
-        lines = self.filtered(lambda x: not (x.order_id.pricelist_id and x.pricelist_item_id._show_discount()))
+        lines = self.filtered(
+            lambda x: x.order_id.state == "sale"
+            and not (x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
+        )
         super(SaleOrderLine, self - lines)._compute_discount()
 
     def _prepare_invoice_line(self, **optional_values):

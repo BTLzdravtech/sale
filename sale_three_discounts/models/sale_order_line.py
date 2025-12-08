@@ -34,24 +34,41 @@ class SaleOrderLine(models.Model):
 
     def _compute_discount(self):
         if self.env.company.country_id.code == 'AR':
-            # we do not want override discounts if the pricelist is configured to include the discount in the price.
-            lines_show_discount = self.filtered(lambda x: x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
-            super(SaleOrderLine, lines_show_discount)._compute_discount()
-            if self.env.context.get("recompute_prices") or lines_show_discount:
+            # we do not want override discounts if the pricelist is configured to include the discount in the price
+            # in SO confirmed.
+            lines = self.filtered(
+                lambda x: x.order_id.state == "sale"
+                and not (x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
+            )
+            lines_to_update = self - lines
+            super(SaleOrderLine, lines_to_update)._compute_discount()
+
+            if self.env.context.get("recompute_prices") or lines_to_update:
                 for line in self:
-                    line.discount1 = line.discount
-                    line.discount2 = 0.0
-                    line.discount3 = 0.0
+                    if line.order_id.state != "sale":
+                        line.discount1 = line.discount
+                        line.discount2 = 0.0
+                        line.discount3 = 0.0
+
+                    # Recalcular descuento total para todos
+                    for line in self:
+                        if line.discount1 or line.discount2 or line.discount3:
+                            line.discount = line._calculate_total_discount()
         else:
             super()._compute_discount()
+
+    def _calculate_total_discount(self):
+        """Calcula el descuento total a partir de discount1, discount2 y discount3"""
+        self.ensure_one()
+        discount_factor = 1.0
+        for discount in [self.discount1, self.discount2, self.discount3]:
+            discount_factor *= (100.0 - discount) / 100.0
+        return 100.0 - (discount_factor * 100.0)
 
     @api.onchange("discount1", "discount2", "discount3")
     def _onchange_discounts(self):
         for line in self:
-            discount_factor = 1.0
-            for discount in [line.discount1, line.discount2, line.discount3]:
-                discount_factor *= (100.0 - discount) / 100.0
-            line.discount = 100.0 - (discount_factor * 100.0)
+            line.discount = line._calculate_total_discount()
 
     def _prepare_invoice_line(self, **optional_values):
         res = super()._prepare_invoice_line(**optional_values)
