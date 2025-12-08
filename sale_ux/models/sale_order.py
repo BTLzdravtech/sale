@@ -311,11 +311,13 @@ class SaleOrder(models.Model):
 
     @api.depends("force_invoiced_status")
     def _compute_amount_to_invoice(self):
+        # TODO: Odoo BTL - lock for AR
         remaining = self - self.filtered("force_invoiced_status")
         (self - remaining).amount_to_invoice = 0.0
         super(SaleOrder, remaining)._compute_amount_to_invoice()
 
     def lock_sale_order(self):
+        # TODO: Odoo BTL - lock for AR
         self.ensure_one()
         return self.locked
 
@@ -328,6 +330,7 @@ class SaleOrder(models.Model):
 
     def write(self, vals):
         # Prevent writing on locked SOs.
+        # TODO: Odoo BTL - lock for AR
         protected_fields = self._get_protected_fields()
         if any(order.lock_sale_order() for order in self) and any(f in vals for f in protected_fields):
             protected_fields_modified = list(set(protected_fields) & set(vals.keys()))

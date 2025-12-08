@@ -15,6 +15,7 @@ class AccountMove(models.Model):
 
     @api.depends("move_type", "partner_id", "partner_id.lang", "company_id")
     def _compute_narration(self):
+        # TODO: Odoo BTL - lock for AR
         """Override para respetar el parámetro propagate_note desde sale orders"""
         propagate_note = self.env["ir.config_parameter"].sudo().get_param("sale.propagate_note") == "True"
 
@@ -30,10 +31,12 @@ class AccountMove(models.Model):
             super(AccountMove, invoices_to_compute)._compute_narration()
 
     def _compute_sale_orders(self):
+        # TODO: Odoo BTL - lock for AR
         for rec in self:
             rec.sale_order_ids = rec.invoice_line_ids.mapped("sale_line_ids.order_id")
 
     def _compute_has_sales(self):
+        # TODO: Odoo BTL - lock for AR
         moves = self.filtered(lambda move: move.is_sale_document())
         (self - moves).has_sales = False
         for rec in moves:
