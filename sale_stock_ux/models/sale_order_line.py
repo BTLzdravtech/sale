@@ -35,10 +35,15 @@ class SaleOrderLine(models.Model):
         copy=False,
         default="no",
     )
-
     total_reserved_quantity = fields.Float(compute="_compute_total_reserved_quantity")
-
     stock_by_location = fields.Text(compute="_compute_stock_by_location")
+
+    def _create_procurements(self, product_qty, procurement_uom, origin, values):
+        self.ensure_one()
+        # cancelar remanente seta la cantidad como entregada menos devuelta
+        # asi que no deberia restar en ese caso
+        product_qty = product_qty - self.quantity_returned
+        return super()._create_procurements(product_qty, procurement_uom, origin, values)
 
     @api.depends("product_id", "product_uom_qty")
     def _compute_total_reserved_quantity(self):
@@ -53,6 +58,32 @@ class SaleOrderLine(models.Model):
     def _compute_all_qty_delivered(self):
         for rec in self:
             rec.all_qty_delivered = rec.qty_delivered + rec.quantity_returned
+
+    def _get_qty_procurement(self, previous_product_uom_qty=False):
+        qty = super()._get_qty_procurement(previous_product_uom_qty=previous_product_uom_qty)
+        outgoing_moves, incoming_moves = self._get_outgoing_incoming_moves(strict=False)
+        for move in outgoing_moves.filtered(lambda m: m.is_exchange_move):
+            qty_to_compute = move.quantity if move.state == "done" else move.product_uom_qty
+            qty -= move.product_uom._compute_quantity(qty_to_compute, self.product_uom, rounding_method="HALF-UP")
+        for move in incoming_moves.filtered(lambda m: m.is_exchange_move):
+            qty_to_compute = move.quantity if move.state == "done" else move.product_uom_qty
+            qty += move.product_uom._compute_quantity(qty_to_compute, self.product_uom, rounding_method="HALF-UP")
+        return qty
+
+    @api.depends()
+    def _compute_qty_delivered(self):
+        super()._compute_qty_delivered()
+        for line in self:
+            if line.qty_delivered_method == "stock_move":
+                outgoing_moves, incoming_moves = line._get_outgoing_incoming_moves()
+                for move in outgoing_moves.filtered(lambda m: m.is_exchange_move and m.state == "done"):
+                    line.qty_delivered -= move.product_uom._compute_quantity(
+                        move.quantity, line.product_uom, rounding_method="HALF-UP"
+                    )
+                for move in incoming_moves.filtered(lambda m: m.is_exchange_move and m.state == "done"):
+                    line.qty_delivered += move.product_uom._compute_quantity(
+                        move.quantity, line.product_uom, rounding_method="HALF-UP"
+                    )
 
     @api.depends("order_id.state", "qty_delivered", "product_uom_qty", "order_id.force_delivery_status")
     def _compute_delivery_status(self):
@@ -100,7 +131,7 @@ class SaleOrderLine(models.Model):
             #         'You can not cancel remianing qty to deliver because '
             #         'there are more product invoiced than the delivered. '
             #         'You should correct invoice or ask for a refund'))
-            rec.product_uom_qty = rec.qty_delivered
+            rec.product_uom_qty = rec.qty_delivered + rec.quantity_returned
             rec.order_id.message_post(
                 body=_('Cancel remaining call for line "%s" (id %s), line qty updated from %s to %s')
                 % (rec.name, rec.id, old_product_uom_qty, rec.product_uom_qty)
@@ -148,12 +179,19 @@ class SaleOrderLine(models.Model):
             quantity_returned = 0.0
             # we use same method as in odoo use to delivery's
             if order_line.qty_delivered_method == "stock_move":
+                # Solo considerar devoluciones REALES del cliente, no contraentregas internas
+                # Las devoluciones reales deben venir de ubicación 'customer' hacia ubicación no-customer
                 return_moves = order_line.mapped("move_ids").filtered(
                     lambda r: (
-                        r.state == "done" and not r.scrapped and r.location_dest_id.usage != "customer" and r.to_refund
+                        r.state == "done"
+                        and not r.scrapped
+                        and r.location_dest_id.usage != "customer"
+                        and r.location_id.usage == "customer"
+                        and r.to_refund
                     )
                 )
-                for move in return_moves:
+                # In multi-step deliveries, we need to avoid counting the same return multiple times
+                for move in return_moves.filtered(lambda m: m.location_id.usage == "customer"):
                     quantity_returned += move.product_uom._compute_quantity(
                         move.product_uom_qty, order_line.product_uom
                     )
@@ -192,7 +230,11 @@ class SaleOrderLine(models.Model):
                         filters = {
                             "outgoing_moves": lambda m: m.location_dest_id.usage == "customer"
                             and (not m.origin_returned_move_id or (m.origin_returned_move_id and m.to_refund)),
-                            "incoming_moves": lambda m: m.location_dest_id.usage != "customer" and m.to_refund,
+                            "incoming_moves": lambda m: (
+                                m.location_dest_id.usage != "customer"
+                                and m.location_id.usage == "customer"
+                                and m.to_refund
+                            ),
                         }
                         order_qty = order_line.product_uom._compute_quantity(
                             order_line.product_uom_qty, relevant_bom.product_uom_id
@@ -211,15 +253,12 @@ class SaleOrderLine(models.Model):
                             quantity_returned = 0.0
             order_line.quantity_returned = quantity_returned
 
-    @api.depends("quantity_returned")
+    @api.depends("quantity_returned", "move_ids.state", "move_ids.product_uom_qty")
     def _compute_qty_to_invoice(self):
         """
         Modificamos la funcion original para que si el producto es segun lo
-        pedido, para que funcione el reembolo hacemos que la cantidad a
+        pedido, para que funcione el reembolso hacemos que la cantidad a
         facturar reste la cantidad devuelta.
-        NOTA: solo lo hacemos si policy "order" porque en policy "delivered"
-        odoo ya lo descuenta a la cantidad entregada y automáticamente lo
-        termina facturando
         """
         super()._compute_qty_to_invoice()
         for line in self:
@@ -227,7 +266,10 @@ class SaleOrderLine(models.Model):
             if line.order_id.state not in ["sale", "done"]:
                 continue
             if line.product_id.invoice_policy == "order":
-                line.qty_to_invoice = line.product_uom_qty - line.quantity_returned - line.qty_invoiced
+                # Simplemente usar quantity_returned que ya considera todas las devoluciones
+                # incluyendo kits, dropship, etc. y excluye cancelaciones de remanente
+                qty_to_invoice_corrected = line.product_uom_qty - line.quantity_returned - line.qty_invoiced
+                line.qty_to_invoice = qty_to_invoice_corrected
 
     @api.depends(
         "order_id.force_invoiced_status", "state", "product_uom_qty", "qty_delivered", "qty_to_invoice", "qty_invoiced"

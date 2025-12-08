@@ -14,7 +14,7 @@ class SaleOrderLine(models.Model):
         super(SaleOrderLine, self - gathering_lines)._compute_price_unit()
 
     def _prepare_base_line_for_taxes_computation(self, **kwargs):
-        if self.env.context.get("advance_payment") and self.initial_qty_gathered > 0:
+        if self.initial_qty_gathered > 0:
             self.ensure_one()
             kwargs["quantity"] = self.initial_qty_gathered
             return super()._prepare_base_line_for_taxes_computation(**kwargs)
@@ -67,11 +67,15 @@ class SaleOrderLine(models.Model):
                 and not any(
                     invoice._is_downpayment()
                     for invoice in x.order_id.invoice_ids
-                    if invoice.state not in ("cancel", "draft")
+                    if invoice.move_type == "out_invoice"
+                    and invoice.state not in ("cancel", "draft")
+                    and invoice.payment_state in ("paid", "in_payment")
                 )
             )
         ):
-            raise ValidationError(_("Before adding quantities, you need to create and confirm the gathering invoice."))
+            raise ValidationError(
+                _("Before adding quantities, you need to create, confirm and pay the gathering invoice.")
+            )
 
     def _compute_qty_to_deliver(self):
         super()._compute_qty_to_deliver()

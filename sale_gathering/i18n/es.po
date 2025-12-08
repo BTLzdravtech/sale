@@ -5,14 +5,15 @@
 # Translators:
 # María Florencia Frigieri Parma, 2025
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025
+# migration.bot.adhoc, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-24 14:21+0000\n"
+"POT-Creation-Date: 2025-11-14 00:35+0000\n"
 "PO-Revision-Date: 2024-12-10 16:22+0000\n"
-"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2025\n"
+"Last-Translator: migration.bot.adhoc, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -74,11 +75,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
 msgid ""
-"Before adding quantities, you need to create and confirm the gathering "
+"Before adding quantities, you need to create, confirm and pay the gathering "
 "invoice."
 msgstr ""
-"Antes de agregar cantidades, es necesario crear y confirmar la factura de "
-"acopio."
+"Antes de agregar cantidades, es necesario crear, confirmar y pagar la "
+"factura de acopio."
 
 #. module: sale_gathering
 #. odoo-python
@@ -150,16 +151,6 @@ msgstr "Es Acopio?"
 
 #. module: sale_gathering
 #. odoo-python
-#: code:addons/sale_gathering/models/sale_order.py:0
-msgid ""
-"It is forbidden to modify the following fields in a confirmed order:\n"
-"%s"
-msgstr ""
-"Está prohibido modificar los siguientes campos en un pedido bloqueado:\n"
-"%s"
-
-#. module: sale_gathering
-#. odoo-python
 #: code:addons/sale_gathering/models/sale_order_line.py:0
 msgid ""
 "It is not possible to add discounts once the product has been invoiced or "
@@ -209,6 +200,14 @@ msgstr "Línea de pedido de venta"
 
 #. module: sale_gathering
 #. odoo-python
+#: code:addons/sale_gathering/wizards/sale_advance_payment_inv.py:0
+msgid ""
+"The 'Factura en cero descontando acopio' method can only be used for "
+"gathering sales."
+msgstr ""
+
+#. module: sale_gathering
+#. odoo-python
 #: code:addons/sale_gathering/models/sale_order.py:0
 msgid ""
 "The gathering balance will be negative (%s), you cannot make this "
@@ -221,6 +220,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_gathering.field_sale_order__withdrawn_amount
 msgid "Withdrawn Amount"
 msgstr "Monto retirado"
+
+#. module: sale_gathering
+#. odoo-python
+#: code:addons/sale_gathering/models/sale_order.py:0
+msgid "You cannot confirm a gathering order (%s) with a total amount of 0."
+msgstr ""
 
 #. module: sale_gathering
 #. odoo-python

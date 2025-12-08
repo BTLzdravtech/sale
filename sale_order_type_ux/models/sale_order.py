@@ -35,21 +35,15 @@ class SaleOrder(models.Model):
                 return super()._prepare_invoice()
             res = super()._prepare_invoice()
             company = self.type_id.journal_id.company_id
-            self = self.with_company(company.id)
+            # self = self.with_company(company.id)
+            journal = self.env["account.journal"].browse(res.get("journal_id")) if res.get("journal_id") else False
             if company != self.company_id:
-                res["company_id"] = company.id
-                res["partner_bank_id"] = company.partner_id.bank_ids[:1].id
                 # agregamos para que recompute term y cond si la nueva compañia los tiene por defecto
                 if "narration" in res and not res["narration"]:
                     del res["narration"]
-                so_fiscal_position = self.env["account.fiscal.position"].browse(res["fiscal_position_id"])
-                if not so_fiscal_position or (so_fiscal_position.company_id and so_fiscal_position.company_id != company):
-                    res["fiscal_position_id"] = (
-                        self.env["account.fiscal.position"]
-                        .with_company(company.id)
-                        ._get_fiscal_position(self.partner_invoice_id)
-                        .id
-                    )
+
+                if journal and journal.company_id.id != self.company_id.id:
+                    res.pop("journal_id")
             return res
         else:
             return super()._prepare_invoice()
@@ -64,24 +58,47 @@ class SaleOrder(models.Model):
                     order.team_id = order_type.team_id
         return res
 
-
     @api.onchange("type_id")
     def _onchange_team_id(self):
         if self.env.company.country_code == 'AR':
             if self.type_id and self.type_id.team_id:
                 self.team_id = self.type_id.team_id
 
-
     def _create_invoices(self, grouped=False, final=False, date=None):
         """
         Overrides the `_create_invoices` method to ensure that taxes are correctly computed
         for the company of the invoice. In cases where the company has a localization
         (e.g., l10n_ar), this ensures that the taxes from `l10n_ar_tax_ids` are applied.
+
+        Also creates separate invoices for each sale order type when multiple types are present.
         """
-        invoices = super()._create_invoices(grouped=grouped, final=final, date=date)
-        for line in invoices.invoice_line_ids.filtered(
-            lambda x: x.product_id != self.company_id.sale_discount_product_id
-        ):
-            if line.company_id != self.company_id:
-                line.tax_ids = line._get_computed_taxes()
+        # If we have multiple order types and not explicitly grouped, create separate invoices per type
+        if len(self.mapped("type_id")) > 1 and not grouped:
+            all_invoices = self.env["account.move"]
+            for order_type in self.mapped("type_id"):
+                orders_with_type = self.filtered(lambda x: x.type_id.id == order_type.id)
+                type_invoices = super(SaleOrder, orders_with_type)._create_invoices(
+                    grouped=grouped, final=final, date=date
+                )
+                all_invoices |= type_invoices
+            invoices = all_invoices
+        else:
+            invoices = super()._create_invoices(grouped=grouped, final=final, date=date)
+
+        for invoice in invoices.filtered("sale_type_id.journal_id"):
+            company = invoice.sale_type_id.journal_id.company_id
+            if invoice.company_id != company:
+                acc = self.env["account.change.company"].create(
+                    {
+                        "move_id": invoice.id,
+                        "company_ids": [invoice.company_id.id, company.id],
+                        "company_id": company.id,
+                        "journal_id": invoice.sale_type_id.journal_id.id,
+                    }
+                )
+                acc.change_company()
+                invoice.partner_bank_id = company.partner_id.bank_ids[:1].id
         return invoices
+
+    def _get_protected_fields(self):
+        return super()._get_protected_fields() + ["type_id"]
