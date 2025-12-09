@@ -70,6 +70,7 @@ class SaleOrderLine(models.Model):
             qty += move.product_uom._compute_quantity(qty_to_compute, self.product_uom, rounding_method="HALF-UP")
         return qty
 
+    # TODO: Odoo BTL - please add parameters to the depends()
     @api.depends()
     def _compute_qty_delivered(self):
         super()._compute_qty_delivered()
