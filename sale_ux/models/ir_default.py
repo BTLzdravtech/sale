@@ -8,11 +8,11 @@ class IrDefault(models.Model):
 
     def _get_model_defaults(self, model_name, condition=False):
         res = super()._get_model_defaults(model_name, condition)
-        # TODO: Odoo BTL - needs to be locked on AR company
-        if model_name == "res.partner":
-            specific_property_pricelist = self.get_default_pricelist()
-            if specific_property_pricelist:
-                res["specific_property_product_pricelist"] = specific_property_pricelist
+        if self.env.company.country_code == 'AR':
+            if model_name == "res.partner":
+                specific_property_pricelist = self.get_default_pricelist()
+                if specific_property_pricelist:
+                    res["specific_property_product_pricelist"] = specific_property_pricelist
         return res
 
     def get_default_pricelist(self):
