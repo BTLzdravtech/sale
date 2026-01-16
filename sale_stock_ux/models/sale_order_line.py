@@ -70,7 +70,7 @@ class SaleOrderLine(models.Model):
             qty += move.product_uom._compute_quantity(qty_to_compute, self.product_uom, rounding_method="HALF-UP")
         return qty
 
-    @api.depends()
+    @api.depends("qty_delivered_method")
     def _compute_qty_delivered(self):
         super()._compute_qty_delivered()
         for line in self:

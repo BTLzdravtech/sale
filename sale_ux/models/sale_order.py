@@ -13,6 +13,7 @@ from odoo.tools.safe_eval import safe_eval
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    # TODO: Odoo BTL - field name conflict with BTL code, must be renamed
     internal_notes = fields.Html()
     payment_term_id = fields.Many2one(
         tracking=True,
@@ -92,10 +93,11 @@ class SaleOrder(models.Model):
         No utilizamos el método action_update_taxes() directamente porque no funciona
         el message_post sin que se encuentre guardado el registro.
         """
-        self.ensure_one()
-        lines_to_recompute = self.order_line.filtered(lambda line: not line.display_type)
-        lines_to_recompute._compute_tax_id()
-        self.show_update_fpos = False
+        if self.env.company.country_code == 'AR':
+            self.ensure_one()
+            lines_to_recompute = self.order_line.filtered(lambda line: not line.display_type)
+            lines_to_recompute._compute_tax_id()
+            self.show_update_fpos = False
 
     def action_cancel(self):
         if self.env.company.country_id.code == 'AR':
@@ -169,8 +171,10 @@ class SaleOrder(models.Model):
 
     def _get_update_prices_lines(self):
         lines = super()._get_update_prices_lines()
-        lines_to_not_update_ids = self._context.get("lines_to_not_update_ids", [])
-        return lines.filtered(lambda l: l.id not in lines_to_not_update_ids)
+        if self.env.company.country_code == 'AR':
+            lines_to_not_update_ids = self._context.get("lines_to_not_update_ids", [])
+            return lines.filtered(lambda l: l.id not in lines_to_not_update_ids)
+        return lines
 
     def action_update_prices(self):
         # avoiding execution for empty records
@@ -180,50 +184,55 @@ class SaleOrder(models.Model):
 
     def _create_invoices(self, grouped=False, final=False, date=None):
         invoices = super()._create_invoices(grouped=grouped, final=final, date=date)
-        precision = self.env["decimal.precision"].precision_get("Product Unit of Measure")
-        filtered_invoices = invoices.filtered(
-            lambda i: float_is_zero(i.amount_total, precision_digits=precision)
-            and all([line.quantity <= 0.0 for line in i.invoice_line_ids])
-        )
-        filtered_invoices.action_switch_move_type()
-        filtered_invoices.mapped("invoice_line_ids").mapped(lambda line: line.write({"quantity": abs(line.quantity)}))
+        if self.env.company.country_code == 'AR':
+            precision = self.env["decimal.precision"].precision_get("Product Unit of Measure")
+            filtered_invoices = invoices.filtered(
+                lambda i: float_is_zero(i.amount_total, precision_digits=precision)
+                and all([line.quantity <= 0.0 for line in i.invoice_line_ids])
+            )
+            filtered_invoices.action_switch_move_type()
+            filtered_invoices.mapped("invoice_line_ids").mapped(lambda line: line.write({"quantity": abs(line.quantity)}))
         return invoices
 
     def action_preview_sale_order(self):
         """Open sale Preview in a new Tab"""
         res = super().action_preview_sale_order()
-        res.update({"target": "new"})
+        if self.env.company.country_code == 'AR':
+            res.update({"target": "new"})
         return res
 
     def _get_invoiceable_lines(self, final=False):
         """Remove if user allow to remove all notes for invoiceable lines"""
-        dont_send_notes_to_invoices = (
-            self.env["ir.config_parameter"].sudo().get_param("sale_ux.dont_send_notes_to_invoices", "False") == "True"
-        )
+        if self.env.company.country_code == 'AR':
+            dont_send_notes_to_invoices = (
+                self.env["ir.config_parameter"].sudo().get_param("sale_ux.dont_send_notes_to_invoices", "False") == "True"
+            )
         res = super()._get_invoiceable_lines(final=final)
-        if dont_send_notes_to_invoices:
-            res -= res.filtered(lambda x: x.display_type == "line_note")
-
+        if self.env.company.country_code == 'AR':
+            if dont_send_notes_to_invoices:
+                res -= res.filtered(lambda x: x.display_type == "line_note")
         return res
 
     def _prepare_analytic_account_data(self, prefix=None):
-        if (
-            self.env["ir.config_parameter"].sudo().get_param("sale_ux.analytic_account_without_company", "False")
-            == "True"
-        ):
-            self.ensure_one()
-            name = self.name
-            if prefix:
-                name = prefix + ": " + self.name
-            project_plan, _other_plans = self.env["account.analytic.plan"]._get_all_plans()
-            return {
-                "name": name,
-                "code": self.client_order_ref,
-                "company_id": False,
-                "plan_id": project_plan.id,
-                "partner_id": self.partner_id.id,
-            }
-        return super(SaleOrder, self)._prepare_analytic_account_data(prefix=prefix)
+        if self.env.company.country_code == 'AR':
+            if (
+                self.env["ir.config_parameter"].sudo().get_param("sale_ux.analytic_account_without_company", "False")
+                == "True"
+            ):
+                self.ensure_one()
+                name = self.name
+                if prefix:
+                    name = prefix + ": " + self.name
+                project_plan, _other_plans = self.env["account.analytic.plan"]._get_all_plans()
+                return {
+                    "name": name,
+                    "code": self.client_order_ref,
+                    "company_id": False,
+                    "plan_id": project_plan.id,
+                    "partner_id": self.partner_id.id,
+                }
+            return super(SaleOrder, self)._prepare_analytic_account_data(prefix=prefix)
+        return super()._prepare_analytic_account_data(prefix=prefix)
 
     def _cron_clean_old_quotations(self, website=None):
         cancel_old_quotations = bool(
@@ -236,6 +245,7 @@ class SaleOrder(models.Model):
             domain = [
                 ("state", "in", ["draft", "sent"]),
                 ("date_order", "<", oldest_date),
+                ("company_id.country_id.code", "=", "AR")
             ]
             if cancel_old_quotations and self._context.get("website_installed") and not website:
                 # s.o que no tienen website
@@ -249,64 +259,71 @@ class SaleOrder(models.Model):
 
     @api.constrains("pricelist_id")
     def _check_changes_locked_orders(self):
-        for rec in self.filtered(lambda x: x.state == "done"):
-            raise ValidationError(_("You cannot modify already locked orders."))
+        if self.env.company.country_id.code == 'AR':
+            for rec in self.filtered(lambda x: x.state == "done"):
+                raise ValidationError(_("You cannot modify already locked orders."))
 
     def get_update_included_pdf_params(self):
         result = super().get_update_included_pdf_params()
-        auto_select_enabled = (
-            self.env["ir.config_parameter"].sudo().get_param("sale_ux.auto_select_all_documents", "False") == "True"
-        )
-        if not auto_select_enabled:
-            return result
+        if self.env.company.country_id.code == 'AR':
+            auto_select_enabled = (
+                self.env["ir.config_parameter"].sudo().get_param("sale_ux.auto_select_all_documents", "False") == "True"
+            )
+            if not auto_select_enabled:
+                return result
 
-        if self.available_product_document_ids and not self.quotation_document_ids:
-            self.quotation_document_ids = self.available_product_document_ids
-            selected_headers = self.quotation_document_ids.filtered(lambda d: d.document_type == "header")
-            selected_footers = self.quotation_document_ids.filtered(lambda d: d.document_type == "footer")
+            if self.available_product_document_ids and not self.quotation_document_ids:
+                self.quotation_document_ids = self.available_product_document_ids
+                selected_headers = self.quotation_document_ids.filtered(lambda d: d.document_type == "header")
+                selected_footers = self.quotation_document_ids.filtered(lambda d: d.document_type == "footer")
 
-            for header in result.get("headers", {}).get("files", []):
-                if any(h.id == header["id"] for h in selected_headers):
-                    header["is_selected"] = True
+                for header in result.get("headers", {}).get("files", []):
+                    if any(h.id == header["id"] for h in selected_headers):
+                        header["is_selected"] = True
 
-            for footer in result.get("footers", {}).get("files", []):
-                if any(f.id == footer["id"] for f in selected_footers):
-                    footer["is_selected"] = True
+                for footer in result.get("footers", {}).get("files", []):
+                    if any(f.id == footer["id"] for f in selected_footers):
+                        footer["is_selected"] = True
 
-        for line in self.order_line:
-            if line.available_product_document_ids and not line.product_document_ids:
-                line.product_document_ids = line.available_product_document_ids
+            for line in self.order_line:
+                if line.available_product_document_ids and not line.product_document_ids:
+                    line.product_document_ids = line.available_product_document_ids
 
-        for line_data in result.get("lines", []):
-            line = self.order_line.filtered(lambda l: l.id == line_data["id"])
-            if line and line.product_document_ids:
-                for doc in line_data.get("files", []):
-                    if any(d.id == doc["id"] for d in line.product_document_ids):
-                        doc["is_selected"] = True
+            for line_data in result.get("lines", []):
+                line = self.order_line.filtered(lambda l: l.id == line_data["id"])
+                if line and line.product_document_ids:
+                    for doc in line_data.get("files", []):
+                        if any(d.id == doc["id"] for d in line.product_document_ids):
+                            doc["is_selected"] = True
         return result
 
     def copy(self, default=None):
         default = dict(default or {})
         new_orders = super().copy(default)
-        bodies = {}
-        for old_order, new_order in zip(self, new_orders):
-            bodies[new_order.id] = (
-                "" if not old_order else _("This sale order was duplicated from %s", old_order._get_html_link())
-            )
-        new_orders._message_log_batch(bodies=bodies)
-        for line_to_clean in new_orders.mapped("order_line").filtered(lambda x: False in x.mapped("tax_id.active")):
-            line_to_clean.tax_id = [Command.unlink(x.id) for x in line_to_clean.tax_id.filtered(lambda x: not x.active)]
+        if self.env.company.country_id.code == 'AR':
+            bodies = {}
+            for old_order, new_order in zip(self, new_orders):
+                bodies[new_order.id] = (
+                    "" if not old_order else _("This sale order was duplicated from %s", old_order._get_html_link())
+                )
+            new_orders._message_log_batch(bodies=bodies)
+            for line_to_clean in new_orders.mapped("order_line").filtered(lambda x: False in x.mapped("tax_id.active")):
+                line_to_clean.tax_id = [Command.unlink(x.id) for x in line_to_clean.tax_id.filtered(lambda x: not x.active)]
         return new_orders
 
     @api.depends("force_invoiced_status")
     def _compute_amount_to_invoice(self):
-        remaining = self - self.filtered("force_invoiced_status")
-        (self - remaining).amount_to_invoice = 0.0
-        super(SaleOrder, remaining)._compute_amount_to_invoice()
+        if self.env.company.country_id.code == 'AR':
+            remaining = self - self.filtered("force_invoiced_status")
+            (self - remaining).amount_to_invoice = 0.0
+            super(SaleOrder, remaining)._compute_amount_to_invoice()
+        else:
+            super()._compute_amount_to_invoice()
 
     def lock_sale_order(self):
-        self.ensure_one()
-        return self.locked
+        if self.env.company.country_id.code == 'AR':
+            self.ensure_one()
+            return self.locked
 
     def _get_protected_fields(self):
         """Give the fields that should not be modified on a SO.
@@ -317,19 +334,20 @@ class SaleOrder(models.Model):
 
     def write(self, vals):
         # Prevent writing on locked SOs.
-        protected_fields = self._get_protected_fields()
-        if any(order.lock_sale_order() for order in self) and any(f in vals for f in protected_fields):
-            protected_fields_modified = list(set(protected_fields) & set(vals.keys()))
-            fields = (
-                self.env["ir.model.fields"]
-                .sudo()
-                .search([("name", "in", protected_fields_modified), ("model", "=", self._name)])
-            )
-            if fields:
-                raise UserError(
-                    _(
-                        "It is forbidden to modify the following fields in a locked order:\n%s",
-                        "\n".join(fields.mapped("field_description")),
-                    )
+        if self.env.company.country_id.code == 'AR':
+            protected_fields = self._get_protected_fields()
+            if any(order.lock_sale_order() for order in self) and any(f in vals for f in protected_fields):
+                protected_fields_modified = list(set(protected_fields) & set(vals.keys()))
+                fields = (
+                    self.env["ir.model.fields"]
+                    .sudo()
+                    .search([("name", "in", protected_fields_modified), ("model", "=", self._name)])
                 )
+                if fields:
+                    raise UserError(
+                        _(
+                            "It is forbidden to modify the following fields in a locked order:\n%s",
+                            "\n".join(fields.mapped("field_description")),
+                        )
+                    )
         return super().write(vals)

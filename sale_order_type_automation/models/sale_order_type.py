@@ -105,7 +105,6 @@ class SaleOrderType(models.Model):
         for rec in self.filtered(lambda x: x.payment_atomation == "none"):
             rec.payment_journal_id = False
 
-    @api.depends()
     def _compute_auto_done_setting(self):
         default = self.env["ir.config_parameter"].sudo().get_param("sale.auto_done_setting", "False")
         self.auto_done_setting = safe_eval(default)
