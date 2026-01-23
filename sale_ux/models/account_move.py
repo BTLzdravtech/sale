@@ -33,9 +33,11 @@ class AccountMove(models.Model):
             super()._compute_narration()
 
     def _compute_sale_orders(self):
-        if self.env.company.country_code == 'AR':
-            for rec in self:
+        for rec in self:
+            if self.env.company.country_code == 'AR':
                 rec.sale_order_ids = rec.invoice_line_ids.mapped("sale_line_ids.order_id")
+            else:
+                rec.sale_order_ids = False
 
     def _compute_has_sales(self):
         if self.env.company.country_code == 'AR':
@@ -43,6 +45,9 @@ class AccountMove(models.Model):
             (self - moves).has_sales = False
             for rec in moves:
                 rec.has_sales = any(line for line in rec.invoice_line_ids.mapped("sale_line_ids"))
+        else:
+            for rec in self:
+                res.has_sales = False
 
     # Evaluar en proximas verciones si Odoo lo resuelve
     def action_post(self):

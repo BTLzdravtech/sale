@@ -10,5 +10,7 @@ class CrmTeam(models.Model):
                 return []
             else:
                 return "['&', ('share', '=', False), ('company_ids', 'in', member_company_ids)]"
+        else:
+            return []
 
     member_ids = fields.Many2many(domain=lambda self: self._domain_member_ids())
