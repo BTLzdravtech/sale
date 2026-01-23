@@ -13,8 +13,7 @@ from odoo.tools.safe_eval import safe_eval
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    # TODO: Odoo BTL - field name conflict with BTL code, must be renamed
-    internal_notes = fields.Html()
+    internal_notes_ar = fields.Html()
     payment_term_id = fields.Many2one(
         tracking=True,
     )
@@ -58,8 +57,8 @@ class SaleOrder(models.Model):
                 self.env["ir.config_parameter"].sudo().get_param("sale.propagate_internal_notes") == "True"
             )
             propagate_note = self.env["ir.config_parameter"].sudo().get_param("sale.propagate_note") == "True"
-            if propagate_internal_notes and self.internal_notes:
-                vals.update({"internal_notes": self.internal_notes})
+            if propagate_internal_notes and self.internal_notes_ar:
+                vals.update({"internal_notes": self.internal_notes_ar})
             if "narration" in vals and not propagate_note:
                 vals.pop("narration")
             company = (

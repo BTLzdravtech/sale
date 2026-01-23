@@ -274,7 +274,7 @@ msgstr ""
 "mapear a nuevos impuestos."
 
 #. module: sale_ux
-#: model:ir.model.fields,field_description:sale_ux.field_sale_order__internal_notes
+#: model:ir.model.fields,field_description:sale_ux.field_sale_order__internal_notes_ar
 msgid "Internal Notes"
 msgstr "Notas Internas"
 
