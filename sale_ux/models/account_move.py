@@ -47,7 +47,7 @@ class AccountMove(models.Model):
                 rec.has_sales = any(line for line in rec.invoice_line_ids.mapped("sale_line_ids"))
         else:
             for rec in self:
-                res.has_sales = False
+                rec.has_sales = False
 
     # Evaluar en proximas verciones si Odoo lo resuelve
     def action_post(self):
