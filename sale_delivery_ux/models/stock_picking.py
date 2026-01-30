@@ -29,4 +29,4 @@ class StockPicking(models.Model):
             deliver_lines.update({"qty_delivered": 1.0})
             return res
         else:
-            super()._add_delivery_cost_to_so()
+            return super()._action_done()
