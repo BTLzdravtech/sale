@@ -21,26 +21,39 @@ class SaleOrder(models.Model):
         help="El monto retirado (o solicitado) se calcula en base a la columna cantidad de las lineas de ventas, no necesariamente tienen que estar entregadas/facturadas esas lineas de venta.",
     )
 
+    def _get_gathering_lines(self):
+        self.ensure_one()
+        return self.order_line
+
     @api.depends(
         "is_gathering",
         "state",
         "order_line.product_id",
         "order_line.price_unit",
-        "order_line.qty_invoiced",
-        "order_line.qty_to_invoice",
+        "order_line.product_uom_qty",
         "order_line.is_downpayment",
         "order_line.quantity_returned",
+        "order_line.invoice_lines.parent_state",
     )
     def _compute_gathering_balance(self):
         orders_gathering = self.filtered(
-            lambda order: order.is_gathering
-            and order.state == "sale"
-            and any(order.order_line.filtered("is_downpayment"))
+            lambda order: (
+                order.is_gathering and order.state == "sale" and any(order.order_line.filtered("is_downpayment"))
+            )
         )
 
         for order in orders_gathering:
+            lines = order._get_gathering_lines()
             total_downpayment_amount = 0
-            for line in order.order_line.filtered("is_downpayment"):
+            for line in lines.filtered(
+                lambda l: l.is_downpayment
+                and not l.display_type
+                and any(
+                    il.parent_state != "cancel"
+                    for il in l.invoice_lines
+                    if len(il.move_id.invoice_line_ids.sale_line_ids.filtered("is_downpayment")) == 1
+                )
+            ):
                 total_downpayment_amount += line.tax_id.with_context(round=False).compute_all(
                     line.price_unit,
                     currency=line.currency_id,
@@ -49,18 +62,18 @@ class SaleOrder(models.Model):
                     partner=line.order_id.partner_shipping_id,
                 )["total_included"]
 
-            total_amount_to_invoice_invoiced = 0
-            for line in order.order_line.filtered(lambda x: not x.is_downpayment):
+            total_amount = 0
+            for line in lines.filtered(lambda x: not x.is_downpayment):
                 price_reduce = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                total_amount_to_invoice_invoiced += line.tax_id.compute_all(
+                total_amount += line.tax_id.compute_all(
                     price_reduce,
                     currency=line.currency_id,
-                    quantity=line.qty_to_invoice + line.qty_invoiced,
+                    quantity=line.product_uom_qty - line.quantity_returned,
                     product=line.product_id,
                     partner=line.order_id.partner_shipping_id,
                 )["total_included"]
 
-            order.gathering_balance = total_downpayment_amount - total_amount_to_invoice_invoiced
+            order.gathering_balance = total_downpayment_amount - total_amount
 
         (self - orders_gathering).gathering_balance = 0
 
@@ -94,12 +107,13 @@ class SaleOrder(models.Model):
                     _("You cannot confirm a gathering order (%s) with a total amount of 0.") % order.name
                 )
             lines_commands = []
-            for line in order.order_line.filtered(lambda l: l.product_uom_qty > 0):
+            for line in order._get_gathering_lines().filtered(lambda l: l.product_uom_qty > 0):
                 lines_commands.append(
                     Command.update(line.id, {"initial_qty_gathered": line.product_uom_qty, "product_uom_qty": 0})
                 )
             if lines_commands:
-                order.write({"order_line": lines_commands})
+                # for compatibility with sale_exception
+                order.with_context(check_exception=False).write({"order_line": lines_commands})
         return super()._action_confirm()
 
     @api.depends("order_line.initial_qty_gathered", "is_gathering")
@@ -108,8 +122,9 @@ class SaleOrder(models.Model):
             lambda x: x.is_gathering and x.order_line.filtered(lambda x: x.initial_qty_gathered > 0)
         )
         for order in orders_gathering:
+            lines = order._get_gathering_lines()
             price_subtotal_with_taxes = 0
-            for line in order.order_line.filtered(lambda x: x.initial_qty_gathered > 0):
+            for line in lines.filtered(lambda x: x.initial_qty_gathered > 0):
                 price_reduce = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
                 subtotal = line.tax_id.compute_all(
                     price_reduce,
@@ -179,6 +194,7 @@ class SaleOrder(models.Model):
                 else:
                     products_invoice.reversed_entry_id = downpayment_invoice
                     invoices.write({"ref": "Devolución Canje"})
+                invoices = invoices.sorted(lambda m: 0 if m.move_type == "out_invoice" else 1)
             else:
                 invoices = super()._create_invoices(final=True, grouped=grouped, date=date)
             return invoices

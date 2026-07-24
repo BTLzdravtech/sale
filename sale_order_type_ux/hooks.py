@@ -12,8 +12,7 @@ def post_init_hook(env):
         """
         UPDATE sale_order
         SET type_id = %s
-        WHERE state IN ('sale', 'done')
-          AND type_id IS NULL
+        WHERE type_id IS NULL
     """,
         (default_sale_order_type.id,),
     )
@@ -24,7 +23,9 @@ def _revert_method(cls, name):
     See :meth:`~._patch_method`.
     """
     method = getattr(cls, name)
-    setattr(cls, name, method.origin)
+    origin = getattr(method, "origin", None)
+    if origin:
+        setattr(cls, name, origin)
 
 
 def uninstall_hook(env):

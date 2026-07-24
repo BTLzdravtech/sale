@@ -16,7 +16,12 @@ class SaleOrder(models.Model):
 
     def run_invoicing_atomation(self):
         for rec in self.filtered(
-            lambda x: (x.type_id.invoicing_atomation != "none" and any(line.qty_to_invoice for line in x.order_line))
+            lambda x: (
+                x.type_id
+                and x.type_id.invoicing_atomation != "none"
+                and x.invoice_status == "to invoice"
+                and any(line.qty_to_invoice for line in x.order_line)
+            )
         ):
             # we take into account if there are any transaction finish from the e-commerce
             #  and not continue with the automation in this case
@@ -29,10 +34,13 @@ class SaleOrder(models.Model):
             # a list is returned but only one invoice should be returned
             # usamos final para que reste adelantos y tmb por ej
             # por si se usa el modulo de facturar las returns
+            if rec.type_id.background_post:
+                rec = rec.with_context(default_background_post=True)
             invoices = rec._create_invoices(final=True)
             if not invoices:
                 continue
-            if rec.type_id.invoicing_atomation == "validate_invoice":
+
+            if rec.type_id.invoicing_atomation == "validate_invoice" and not rec.type_id.background_post:
                 if rec._context.get("commit_invoice_automation"):
                     rec.env.cr.commit()
                 try:
@@ -48,7 +56,7 @@ class SaleOrder(models.Model):
                         invoices_to_validate = invoices.filtered_domain(domain)
                     else:
                         invoices_to_validate = invoices
-                    invoices_to_validate.sudo().action_post()
+                    invoices_to_validate.with_context(sale_type_id=rec.type_id.id).sudo().action_post()
                     for invoice in invoices_to_validate:  # to avoid "expected singleton" error
                         if (
                             invoice.name
@@ -72,10 +80,12 @@ class SaleOrder(models.Model):
         # If there products are the type 'service' equals the
         #  delivered qyt to order qty for this sale order line
         for order_line in self.mapped("order_line").filtered(
-            lambda x: x.order_id.type_id.picking_atomation != "none"
-            and x.product_id.type == "service"
-            and x.product_id.service_type == "manual"
-            and x.product_id.expense_policy == "no"
+            lambda x: (
+                x.order_id.type_id.picking_atomation != "none"
+                and x.product_id.type == "service"
+                and x.product_id.service_type == "manual"
+                and x.product_id.expense_policy == "no"
+            )
         ):
             order_line.qty_delivered = order_line.product_uom_qty
         for rec in self.filtered(lambda x: x.type_id.picking_atomation != "none" and x.procurement_group_id):
@@ -125,4 +135,6 @@ class SaleOrder(models.Model):
         res = super()._prepare_invoice()
         if (self.type_id.payment_atomation != "none") and self.type_id.payment_journal_id:
             res["pay_now_journal_id"] = self.type_id.payment_journal_id.id
+        if self.type_id:
+            res["sale_type_id"] = self.type_id.id
         return res

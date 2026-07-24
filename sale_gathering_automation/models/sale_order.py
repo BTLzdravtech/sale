@@ -2,16 +2,40 @@
 # For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.fields import Command
+from odoo.tools.safe_eval import (
+    datetime as safe_eval_datetime,
+    dateutil as safe_eval_dateutil,
+    safe_eval,
+)
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    def action_create_invoice_with_automation(self):
+        self.ensure_one()
+        if (
+            self.is_gathering
+            and self.state == "sale"
+            and self.type_id
+            and self.type_id.invoicing_atomation != "none"
+            and self.has_gathering_invoice
+            and any(line.qty_to_invoice for line in self.order_line)
+        ):
+            self.run_invoicing_atomation()
+            return self.action_view_invoice()
+
+        return self.env.ref("sale.action_view_sale_advance_payment_inv").sudo().read()[0]
+
     def run_invoicing_atomation(self):
         gathering_lines = self.filtered("is_gathering")
-        super(SaleOrder, gathering_lines.with_context(invoice_gathering=True)).run_invoicing_atomation()
+        # Solo ejecutar el flujo de gathering para órdenes que YA tienen factura de acopio.
+        # Si no tienen factura de acopio, action_confirm se encarga de crearla.
+        # Esto evita que se creen 2 facturas al confirmar.
+        gathering_with_invoice = gathering_lines.filtered("has_gathering_invoice")
+        super(SaleOrder, gathering_with_invoice.with_context(invoice_gathering=True)).run_invoicing_atomation()
         super(SaleOrder, self - gathering_lines).run_invoicing_atomation()
 
     def _has_quantity_changes(self, values):
@@ -56,7 +80,7 @@ class SaleOrder(models.Model):
             ):
                 advance_payment_wizard = (
                     self.env["sale.advance.payment.inv"]
-                    .with_context()
+                    .with_context(first_gathering_invoice=True)
                     .create(
                         {
                             "advance_payment_method": "fixed",
@@ -69,7 +93,19 @@ class SaleOrder(models.Model):
                 invoices = advance_payment_wizard._create_invoices(order)
                 if invoices and order.type_id.invoicing_atomation == "validate_invoice":
                     try:
-                        invoices.sudo().action_post()
+                        if order.type_id.invoice_validate_domain:
+                            domain = safe_eval(
+                                order.type_id.invoice_validate_domain,
+                                {
+                                    "datetime": safe_eval_datetime,
+                                    "context_today": lambda: fields.Date.context_today(order),
+                                    "relativedelta": safe_eval_dateutil.relativedelta.relativedelta,
+                                },
+                            )
+                            invoices_to_validate = invoices.filtered_domain(domain)
+                        else:
+                            invoices_to_validate = invoices
+                        invoices_to_validate.sudo().action_post()
                     except Exception as error:
                         message = _(
                             "We couldn't validate the automatically created "

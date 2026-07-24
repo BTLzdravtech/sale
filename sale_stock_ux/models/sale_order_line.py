@@ -38,11 +38,24 @@ class SaleOrderLine(models.Model):
     total_reserved_quantity = fields.Float(compute="_compute_total_reserved_quantity")
     stock_by_location = fields.Text(compute="_compute_stock_by_location")
 
+    def _check_is_recurring_invoice(self):
+        self.ensure_one()
+        if (
+            self.order_id._fields.get("is_subscription")
+            and self.order_id.is_subscription
+            and self._fields.get("recurring_invoice")
+            and self.recurring_invoice
+        ):
+            return self.recurring_invoice
+        return False
+
     def _create_procurements(self, product_qty, procurement_uom, origin, values):
         self.ensure_one()
         # cancelar remanente seta la cantidad como entregada menos devuelta
         # asi que no deberia restar en ese caso
-        product_qty = product_qty - self.quantity_returned
+        # Para suscripciones: NO restar quantity_returned (ya está en qty_delivered)
+        if not self._check_is_recurring_invoice():
+            product_qty = product_qty - self.quantity_returned
         return super()._create_procurements(product_qty, procurement_uom, origin, values)
 
     @api.depends("product_id", "product_uom_qty")
@@ -109,6 +122,12 @@ class SaleOrderLine(models.Model):
         # la cancelación de kits no está bien resuelta ya que odoo solo computa
         # la cantidad entregada cuando todo el kit se entregó. Cuestión que,
         # por ahora, desactivamos la cancelación de kits
+
+        # Manejar órdenes bloqueadas: desbloquear temporalmente sin tracking
+        orders_to_relock = self.mapped("order_id").filtered(lambda o: o.locked)
+        if orders_to_relock:
+            orders_to_relock.with_context(tracking_disable=True).write({"locked": False})
+
         pack_enable = "pack_ok" in self.env["product.template"]._fields
         for rec in self.filtered("product_id"):
             # For product pack compatibility to cancel all of componept in case the product parent is cancel
@@ -118,9 +137,12 @@ class SaleOrderLine(models.Model):
             old_product_uom_qty = rec.product_uom_qty
 
             # Resetear printed=False en pickings asociados para evitar contra-entregas
-            printed_pickings = rec.move_ids.mapped("picking_id").filtered("printed")
-            if printed_pickings:
-                printed_pickings.write({"printed": False})
+            # cuando Odoo intente mezclar moves en pickings ya impresos
+            pickings_to_reset = rec.order_id.picking_ids.filtered(
+                lambda p: p.state not in ("done", "cancel") and p.printed
+            )
+            if pickings_to_reset:
+                pickings_to_reset.write({"printed": False})
 
             # Al final permitimos cancelar igual porque es necesario, por ej,
             # si no se va a entregar y ya está facturado y se quiere hacer
@@ -131,11 +153,17 @@ class SaleOrderLine(models.Model):
             #         'You can not cancel remianing qty to deliver because '
             #         'there are more product invoiced than the delivered. '
             #         'You should correct invoice or ask for a refund'))
-            rec.product_uom_qty = rec.qty_delivered + rec.quantity_returned
+            rec.with_context(skip_locked_order_line_check=True).product_uom_qty = (
+                rec.qty_delivered + rec.quantity_returned
+            )
             rec.order_id.message_post(
                 body=_('Cancel remaining call for line "%s" (id %s), line qty updated from %s to %s')
                 % (rec.name, rec.id, old_product_uom_qty, rec.product_uom_qty)
             )
+
+        # Volver a bloquear las órdenes que estaban bloqueadas sin generar mensaje
+        if orders_to_relock:
+            orders_to_relock.with_context(tracking_disable=True).write({"locked": True})
 
     @api.onchange("product_uom_qty")
     def _onchange_product_uom_qty(self):
@@ -207,10 +235,12 @@ class SaleOrderLine(models.Model):
                     # the we keep only the one related to the finished produst.
                     # This bom shoud be the only one since bom_line_id was written on the moves
                     relevant_bom = boms.filtered(
-                        lambda b: b.type == "phantom"
-                        and (
-                            b.product_id == order_line.product_id
-                            or (b.product_tmpl_id == order_line.product_id.product_tmpl_id and not b.product_id)
+                        lambda b: (
+                            b.type == "phantom"
+                            and (
+                                b.product_id == order_line.product_id
+                                or (b.product_tmpl_id == order_line.product_id.product_tmpl_id and not b.product_id)
+                            )
                         )
                     )
                     if relevant_bom:
@@ -227,8 +257,10 @@ class SaleOrderLine(models.Model):
                                 quantity_returned = 0.0
                             continue
                         filters = {
-                            "outgoing_moves": lambda m: m.location_dest_id.usage == "customer"
-                            and (not m.origin_returned_move_id or (m.origin_returned_move_id and m.to_refund)),
+                            "outgoing_moves": lambda m: (
+                                m.location_dest_id.usage == "customer"
+                                and (not m.origin_returned_move_id or (m.origin_returned_move_id and m.to_refund))
+                            ),
                             "incoming_moves": lambda m: (
                                 m.location_dest_id.usage != "customer"
                                 and m.location_id.usage == "customer"
@@ -310,7 +342,7 @@ class SaleOrderLine(models.Model):
                     ("product_id", "=", line.product_id.id),
                     ("quantity", ">", 0),
                 ],
-                fields=["location_id"],
+                fields=["location_id", "available_quantity:sum"],
                 groupby=["location_id"],
                 lazy=False,
             )
@@ -318,11 +350,8 @@ class SaleOrderLine(models.Model):
             stock_lines = []
 
             for stock in stock_quants:
-                location_id = stock["location_id"][0]
                 location_name = stock["location_id"][1]
-
-                product = line.product_id.with_context(location=location_id)
-                free_qty = product.free_qty
+                free_qty = stock["available_quantity"]
 
                 if free_qty > 0:
                     if line.product_uom and line.product_uom != line.product_id.uom_id:
@@ -333,3 +362,9 @@ class SaleOrderLine(models.Model):
             line.stock_by_location = "\n".join(stock_lines) if stock_lines else ""
 
         (self - self).stock_by_location = ""
+
+    def _get_protected_fields(self):
+        """Override to allow modifications when skip_locked_order_line_check context is set."""
+        if self._context.get("skip_locked_order_line_check"):
+            return []
+        return super()._get_protected_fields()

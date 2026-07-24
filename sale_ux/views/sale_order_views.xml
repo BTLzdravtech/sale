@@ -27,6 +27,16 @@
                 <attribute name="column_invisible"></attribute>
                 <attribute name="optional">hide</attribute>
             </xpath>
+
+            <!-- lo dejamos siempre visible para que si el cliente modifica cosas por edicion masiva, expo/impo u otras o manualmente, pueda siempre re-computar según la FP -->
+            <button name="action_update_taxes" position="attributes">
+                <attribute name="invisible">state not in ['draft', 'sent']</attribute>
+            </button>
+
+            <xpath expr="//field[@name='order_line']/list" position="attributes">
+                <attribute name="limit">40</attribute>
+            </xpath>
+
             <group name="note_group" position="after">
                 <newline/>
                 <field name="internal_notes" nolabel="1" placeholder="Internal Notes..." groups="base.group_user"/>
@@ -107,10 +117,11 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_tree"/>
         <field name="arch" type="xml">
-            <!-- move state before invoice status and make it visible -->
-            <field name="state" position="replace"/>
-            <field name="invoice_status" position="before">
-                <field name="state" decoration-success="state == 'sale'" decoration-info="state in ['draft', 'sent']" decoration-danger="state == 'cancel'" widget="badge"/>
+            <!-- update state field decoration and make it visible -->
+            <field name="state" position="attributes">
+                <attribute name="decoration-info">state in ['draft', 'sent']</attribute>
+                <attribute name="decoration-primary"></attribute>
+                <attribute name="decoration-danger">state == 'cancel'</attribute>
             </field>
             <field name="invoice_status" position="after">
                 <field name="amount_uninvoiced" optional="hide"/>

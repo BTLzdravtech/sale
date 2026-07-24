@@ -18,8 +18,11 @@ class StockPicking(models.Model):
         )
         if any(
             self.sudo().filtered(
-                lambda x: x.sale_id.type_id.invoice_policy in ["prepaid", "prepaid_block_delivery"]
-                and not x._check_sale_paid()
+                lambda x: (
+                    x._is_delivery_chain()
+                    and x.sale_id.type_id.invoice_policy in ["prepaid", "prepaid_block_delivery"]
+                    and not x._check_sale_paid()
+                )
             )
         ):
             raise UserError(_(msg))
@@ -32,7 +35,9 @@ class StockPicking(models.Model):
             "be invoiced and paid before you can reserve qty to this picking"
         )
         prepaid_unpaid = self.sudo().filtered(
-            lambda x: x.sale_id.type_id.invoice_policy == "prepaid" and not x._check_sale_paid()
+            lambda x: x.picking_type_id.code == "outgoing"
+            and x.sale_id.type_id.invoice_policy == "prepaid"
+            and not x._check_sale_paid()
         )
         if prepaid_unpaid and self._context.get("prepaid_raise"):
             raise UserError(_(msg))
@@ -56,3 +61,53 @@ class StockPicking(models.Model):
         ):
             return False
         return True
+
+    def _is_delivery_chain(self):
+        """Whether this picking's moves eventually reach a customer location.
+
+        Identifies pick/pack/out steps regardless of how many intermediate
+        picking types a warehouse defines (e.g. several custom Pick
+        operation types per product category), instead of relying on the
+        single warehouse.pick_type_id/pack_type_id references, which only
+        cover the default 3-step route and miss any extra custom ones.
+        Return/receipt pickings are excluded naturally, since their moves
+        never end up in a customer location.
+
+        Some routes only create the next leg's stock.move once the current
+        one is done (instead of upfront at sale confirmation), so rolling up
+        move_dest_ids alone misses the chain for pickings validated before
+        that next move exists. Falling back to the warehouse's stock.rule
+        graph covers that case: rules are static routing configuration, so
+        they are already there even when the moves they will generate are
+        not.
+
+        The rule graph is direction-blind though: a return leg can land on
+        an internal location (e.g. the warehouse's own Stock) from which
+        outgoing rules for future sales are still reachable, which would
+        wrongly read as "heading to a customer". Returned moves are excluded
+        upfront (via move_orig_ids rollup, so a later leg of a multi-step
+        return is also caught) before even considering that fallback.
+        """
+        self.ensure_one()
+        moves = self.move_ids
+        orig_moves = moves.browse(moves._rollup_move_origs())
+        if orig_moves.filtered("origin_returned_move_id"):
+            return False
+
+        dest_moves = moves.browse(moves._rollup_move_dests())
+        if (moves | dest_moves).filtered(lambda m: m.location_dest_id.usage == "customer"):
+            return True
+
+        Rule = self.env["stock.rule"]
+        to_visit = set(moves.location_dest_id.ids)
+        seen = set()
+        while to_visit:
+            location_id = to_visit.pop()
+            if location_id in seen:
+                continue
+            seen.add(location_id)
+            if self.env["stock.location"].browse(location_id).usage == "customer":
+                return True
+            next_rules = Rule.search([("location_src_id", "=", location_id), ("active", "=", True)])
+            to_visit.update(set(next_rules.location_dest_id.ids) - seen)
+        return False
