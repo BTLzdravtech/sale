@@ -2,6 +2,8 @@
 # For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
+from collections import defaultdict
+
 from odoo import _, api, fields, models
 from odoo.tools.float_utils import float_compare, float_is_zero
 
@@ -60,12 +62,24 @@ class SaleOrderLine(models.Model):
 
     @api.depends("product_id", "product_uom_qty")
     def _compute_total_reserved_quantity(self):
-        for line in self:
-            loc_id = line.order_id.warehouse_id.lot_stock_id.id
-            stock_quants = self.env["stock.quant"].search(
-                [("product_id", "=", line.product_id.id), ("location_id", "child_of", loc_id)]
-            )
-            line.total_reserved_quantity = sum(stock_quants.mapped("reserved_quantity"))
+        # Batched: one grouped query per distinct warehouse stock location instead
+        # of a stock.quant search per line (avoids an N+1 on the order form load).
+        self.total_reserved_quantity = 0.0
+        lines = self.filtered(lambda line: line.product_id and line.order_id.warehouse_id.lot_stock_id)
+        for root_location, root_lines in lines.grouped(lambda line: line.order_id.warehouse_id.lot_stock_id).items():
+            reserved_by_product = {
+                product.id: reserved
+                for product, reserved in self.env["stock.quant"]._read_group(
+                    domain=[
+                        ("product_id", "in", root_lines.product_id.ids),
+                        ("location_id", "child_of", root_location.id),
+                    ],
+                    groupby=["product_id"],
+                    aggregates=["reserved_quantity:sum"],
+                )
+            }
+            for line in root_lines:
+                line.total_reserved_quantity = reserved_by_product.get(line.product_id.id, 0.0)
 
     @api.depends("qty_delivered", "quantity_returned")
     def _compute_all_qty_delivered(self):
@@ -308,13 +322,20 @@ class SaleOrderLine(models.Model):
                 line.qty_to_invoice = qty_to_invoice_corrected
 
     @api.depends(
-        "order_id.force_invoiced_status", "state", "product_uom_qty", "qty_delivered", "qty_to_invoice", "qty_invoiced"
+        "order_id.force_invoiced_status",
+        "state",
+        "product_uom_qty",
+        "qty_delivered",
+        "qty_to_invoice",
+        "qty_invoiced",
+        "quantity_returned",
     )
     def _compute_invoice_status(self):
         super()._compute_invoice_status()
         precision = self.env["decimal.precision"].precision_get("Product Unit of Measure")
         for line in self:
             if not line.order_id.force_invoiced_status:
+                net_qty = line.product_uom_qty - line.quantity_returned
                 if not float_is_zero(line.qty_to_invoice, precision_digits=precision):
                     line.invoice_status = "to invoice"
                 elif (
@@ -324,11 +345,14 @@ class SaleOrderLine(models.Model):
                     and float_compare(line.qty_delivered, line.product_uom_qty, precision_digits=precision) == 1
                 ):
                     line.invoice_status = "upselling"
-                elif (
-                    float_compare(
-                        line.qty_invoiced, (line.product_uom_qty - line.quantity_returned), precision_digits=precision
-                    )
-                    >= 0
+                elif float_compare(line.qty_invoiced, net_qty, precision_digits=precision) >= 0 and (
+                    # Sin devolución mantenemos la semántica nativa (una línea de
+                    # cantidad 0 queda "invoiced"). Con devolución solo es "invoiced"
+                    # si quedó una cantidad neta positiva a facturar; si se devolvió
+                    # todo (neto 0), no hay nada que facturar y cae a "no", igual que
+                    # el core de Odoo. Ver ticket 123997.
+                    float_is_zero(line.quantity_returned, precision_digits=precision)
+                    or float_compare(net_qty, 0.0, precision_digits=precision) > 0
                 ):
                     line.invoice_status = "invoiced"
                 else:
@@ -336,37 +360,33 @@ class SaleOrderLine(models.Model):
 
     @api.depends("product_template_id")
     def _compute_stock_by_location(self):
-        for line in self:
-            if not line.product_id:
-                line.stock_by_location = ""
-                continue
+        # Batched: a single grouped query for every product in the recordset instead
+        # of a stock.quant read_group per line (avoids an N+1 on the order form load).
+        self.stock_by_location = ""
+        lines = self.filtered("product_id")
+        if not lines:
+            return
 
-            stock_quants = self.env["stock.quant"].read_group(
-                domain=[
-                    ("location_id.usage", "=", "internal"),
-                    ("product_id", "=", line.product_id.id),
-                    ("quantity", ">", 0),
-                ],
-                fields=["location_id", "available_quantity:sum"],
-                groupby=["location_id"],
-                lazy=False,
-            )
+        available_by_product = defaultdict(list)
+        for product, location, available_quantity in self.env["stock.quant"]._read_group(
+            domain=[
+                ("location_id.usage", "=", "internal"),
+                ("product_id", "in", lines.product_id.ids),
+                ("quantity", ">", 0),
+            ],
+            groupby=["product_id", "location_id"],
+            aggregates=["available_quantity:sum"],
+        ):
+            if available_quantity > 0:
+                available_by_product[product.id].append((location.display_name, available_quantity))
 
+        for line in lines:
             stock_lines = []
-
-            for stock in stock_quants:
-                location_name = stock["location_id"][1]
-                free_qty = stock["available_quantity"]
-
-                if free_qty > 0:
-                    if line.product_uom and line.product_uom != line.product_id.uom_id:
-                        free_qty = line.product_id.uom_id._compute_quantity(free_qty, line.product_uom)
-
-                    stock_lines.append(f"{location_name}: {free_qty:.2f} {line.product_uom.name}")
-
-            line.stock_by_location = "\n".join(stock_lines) if stock_lines else ""
-
-        (self - self).stock_by_location = ""
+            for location_name, free_qty in available_by_product.get(line.product_id.id, []):
+                if line.product_uom and line.product_uom != line.product_id.uom_id:
+                    free_qty = line.product_id.uom_id._compute_quantity(free_qty, line.product_uom)
+                stock_lines.append(f"{location_name}: {free_qty:.2f} {line.product_uom.name}")
+            line.stock_by_location = "\n".join(stock_lines)
 
     def _get_protected_fields(self):
         """Override to allow modifications when skip_locked_order_line_check context is set."""
