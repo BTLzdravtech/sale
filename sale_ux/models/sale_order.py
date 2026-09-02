@@ -17,7 +17,9 @@ class SaleOrder(models.Model):
         return self.country_code == "AR"
 
     def unlink(self):
-        orders_with_invoices = self.filtered(lambda order: order._is_argentine_company() and order.invoice_ids)
+        orders_with_invoices = self.filtered(
+            lambda order: order._is_argentine_company() and order.invoice_ids
+        )
         if orders_with_invoices:
             raise UserError(
                 self.env._(
@@ -49,18 +51,25 @@ class SaleOrder(models.Model):
         help="Uninvoiced amount, regardless of invoice policy.",
     )
     amount_to_invoice = fields.Monetary(
-        help="Total amount available for invoicing according to the invoice policy for each sale order line."
-        "Down payments are not included in this calculation."
+        help=(
+            "Total amount available for invoicing according to the invoice policy for each sale order line."
+            "Down payments are not included in this calculation."
+        )
     )
 
     @api.depends("invoice_ids.state", "currency_id", "amount_total")
     def _compute_amount_uninvoiced(self):
         for order in self:
-            if not order._is_argentine_company() or order.invoice_status == "invoiced" or order.state != "sale":
+            if (
+                not order._is_argentine_company()
+                or order.invoice_status == "invoiced"
+                or order.state != "sale"
+            ):
                 order.amount_uninvoiced = 0.0
                 continue
             invoices = order.invoice_ids.filtered(
-                lambda invoice: invoice.state == "posted" or invoice.payment_state == "invoicing_legacy"
+                lambda invoice: invoice.state == "posted"
+                or invoice.payment_state == "invoicing_legacy"
             )
             order.amount_uninvoiced = order.amount_total - invoices._get_sale_order_invoiced_amount(order)
 
@@ -92,7 +101,9 @@ class SaleOrder(models.Model):
         if not self._is_argentine_company():
             return
         update_prices_automatically = safe_eval(
-            self.env["ir.config_parameter"].sudo().get_param("sale_ux.update_prices_automatically", "False")
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("sale_ux.update_prices_automatically", "False")
         )
         if self.order_line and update_prices_automatically:
             super()._recompute_prices()
@@ -109,21 +120,32 @@ class SaleOrder(models.Model):
         other_orders = self - ar_orders
         result = super(SaleOrder, other_orders).action_cancel() if other_orders else None
         for order in ar_orders:
-            invoice_lines = order.sudo().env["account.move.line"].search([("sale_line_ids", "in", order.order_line.ids)])
+            invoice_lines = order.sudo().env["account.move.line"].search(
+                [("sale_line_ids", "in", order.order_line.ids)]
+            )
             moves = invoice_lines.mapped("move_id").filtered(
-                lambda move: move.move_type in ("out_invoice", "out_refund") and move.state not in ["cancel", "draft"]
+                lambda move: move.move_type in ("out_invoice", "out_refund")
+                and move.state not in ["cancel", "draft"]
             )
             invoices = moves.filtered(lambda move: move.move_type == "out_invoice")
             valid_invoices = all(
-                invoice.payment_state == "reversed" and invoice.invoice_origin == order.name for invoice in invoices
+                invoice.payment_state == "reversed" and invoice.invoice_origin == order.name
+                for invoice in invoices
             )
             if valid_invoices:
                 refunds = moves.filtered(lambda move: move.move_type == "out_refund")
-                valid_invoices = all(
-                    refund.payment_state == "paid" and refund.invoice_origin == order.name for refund in refunds
-                ) if refunds else False
+                valid_invoices = (
+                    all(
+                        refund.payment_state == "paid" and refund.invoice_origin == order.name
+                        for refund in refunds
+                    )
+                    if refunds
+                    else False
+                )
             if moves and not valid_invoices:
-                raise UserError(_("Unable to cancel this sale order. You must first cancel related bills and pickings."))
+                raise UserError(
+                    _("Unable to cancel this sale order. You must first cancel related bills and pickings.")
+                )
             if order.locked:
                 result = order._action_cancel()
             else:
@@ -137,7 +159,8 @@ class SaleOrder(models.Model):
             if order.force_invoiced_status and not self.env.user.has_group("base.group_system"):
                 if group.privilege_id:
                     raise ValidationError(
-                        _('Only users with "%s / %s" can Set Invoiced manually') % (group.privilege_id.name, group.name)
+                        _('Only users with "%s / %s" can Set Invoiced manually')
+                        % (group.privilege_id.name, group.name)
                     )
                 raise ValidationError(_('Only users with "%s" can Set Invoiced manually') % group.name)
 
@@ -175,7 +198,8 @@ class SaleOrder(models.Model):
     def _get_invoiceable_lines(self, final=False):
         result = super()._get_invoiceable_lines(final=final)
         dont_send_notes_to_invoices = (
-            self.env["ir.config_parameter"].sudo().get_param("sale_ux.dont_send_notes_to_invoices", "False") == "True"
+            self.env["ir.config_parameter"].sudo().get_param("sale_ux.dont_send_notes_to_invoices", "False")
+            == "True"
         )
         if dont_send_notes_to_invoices:
             result -= result.filtered(
@@ -186,7 +210,9 @@ class SaleOrder(models.Model):
     def _prepare_analytic_account_data(self, prefix=None):
         if (
             self._is_argentine_company()
-            and self.env["ir.config_parameter"].sudo().get_param("sale_ux.analytic_account_without_company", "False")
+            and self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("sale_ux.analytic_account_without_company", "False")
             == "True"
         ):
             self.ensure_one()
@@ -241,8 +267,12 @@ class SaleOrder(models.Model):
 
         if self.available_quotation_document_ids and not self.quotation_document_ids:
             self.quotation_document_ids = self.available_quotation_document_ids
-            selected_headers = self.quotation_document_ids.filtered(lambda document: document.document_type == "header")
-            selected_footers = self.quotation_document_ids.filtered(lambda document: document.document_type == "footer")
+            selected_headers = self.quotation_document_ids.filtered(
+                lambda document: document.document_type == "header"
+            )
+            selected_footers = self.quotation_document_ids.filtered(
+                lambda document: document.document_type == "footer"
+            )
             for header in result.get("headers", {}).get("files", []):
                 if any(document.id == header["id"] for document in selected_headers):
                     header["is_selected"] = True
@@ -277,13 +307,17 @@ class SaleOrder(models.Model):
                 for old_order, new_order in ar_pairs
             }
         )
-        for line in new_ar_orders.mapped("order_line").filtered(lambda record: False in record.mapped("tax_ids.active")):
+        for line in new_ar_orders.mapped("order_line").filtered(
+            lambda record: False in record.mapped("tax_ids.active")
+        ):
             line.tax_ids = [Command.unlink(tax.id) for tax in line.tax_ids.filtered(lambda tax: not tax.active)]
         return new_orders
 
     @api.depends("force_invoiced_status")
     def _compute_amount_to_invoice(self):
-        forced_orders = self.filtered(lambda order: order._is_argentine_company() and order.force_invoiced_status)
+        forced_orders = self.filtered(
+            lambda order: order._is_argentine_company() and order.force_invoiced_status
+        )
         forced_orders.amount_to_invoice = 0.0
         super(SaleOrder, self - forced_orders)._compute_amount_to_invoice()
 
@@ -292,11 +326,15 @@ class SaleOrder(models.Model):
         return self._is_argentine_company() and self.locked
 
     def _get_protected_fields(self):
-        return ["partner_id", "partner_invoice_id", "partner_shipping_id", "pricelist_id"] if self._is_argentine_company() else []
+        return (
+            ["partner_id", "partner_invoice_id", "partner_shipping_id", "pricelist_id"]
+            if self._is_argentine_company()
+            else []
+        )
 
     def write(self, vals):
         locked_orders = self.filtered(lambda order: order.lock_sale_order())
-        protected_fields = locked_orders._get_protected_fields()
+        protected_fields = locked_orders[:1]._get_protected_fields()
         if locked_orders and any(field in vals for field in protected_fields):
             modified_fields = list(set(protected_fields) & set(vals))
             fields_to_display = self.env["ir.model.fields"].sudo().search(
