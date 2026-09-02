@@ -20,46 +20,47 @@ class ProductPricelist(models.Model):
     )
 
     def _compute_price(self):
-        self = self.sudo()
-        active_id = model = False
+        self.price = 0.0
+        if self.env.company.country_code != "AR":
+            return
+
         if "pricelist_product_id" in self.env.context:
-            active_id = self.env.context.get("pricelist_product_id")
+            active_id = self.env.context["pricelist_product_id"]
             model = "product.product"
         elif "pricelist_template_id" in self.env.context:
-            active_id = self.env.context.get("pricelist_template_id")
+            active_id = self.env.context["pricelist_template_id"]
             model = "product.template"
         else:
-            self.price = 0.0
+            return
 
-        if active_id and model:
-            product = self.env[model].browse(active_id)
-            for rec in self:
-                contextual_price = product.with_context(pricelist=rec.id)._get_contextual_price()
-                rec.sudo().write({"price": contextual_price})
+        product = self.env[model].browse(active_id)
+        for pricelist in self:
+            pricelist.price = product.with_context(pricelist=pricelist.id)._get_contextual_price()
 
     @api.model
     def _get_view(self, view_id=None, view_type="form", **options):
         arch, view = super()._get_view(view_id, view_type, **options)
-        if view_type == "form":
-            if (
-                self.env.user.has_group("sales_team.group_sale_salesman")
-                or self.env.user.has_group("sales_team.group_sale_salesman_all_leads")
-            ) and not self.env.user.has_group("sales_team.group_sale_manager"):
-                fields = arch.xpath("//form")
-                for node in fields:
-                    node.set("edit", "false")
+        if self.env.company.country_code != "AR" or view_type != "form":
+            return arch, view
+        if (
+            self.env.user.has_group("sales_team.group_sale_salesman")
+            or self.env.user.has_group("sales_team.group_sale_salesman_all_leads")
+        ) and not self.env.user.has_group("sales_team.group_sale_manager"):
+            for node in arch.xpath("//form"):
+                node.set("edit", "false")
         return arch, view
 
     def unlink(self):
-        confirmed_orders = self.env["sale.order"].search(
-            [("pricelist_id", "in", self.ids), ("state", "=", "sale")],
-            limit=1,
-        )
-        if confirmed_orders:
-            raise UserError(
-                _(
-                    "The price list cannot be deleted because it has confirmed sales. "
-                    "In these cases, we recommend archiving the list."
-                )
+        if self.env.company.country_code == "AR":
+            confirmed_orders = self.env["sale.order"].search(
+                [("pricelist_id", "in", self.ids), ("state", "=", "sale"), ("country_code", "=", "AR")],
+                limit=1,
             )
+            if confirmed_orders:
+                raise UserError(
+                    _(
+                        "The price list cannot be deleted because it has confirmed sales. "
+                        "In these cases, we recommend archiving the list."
+                    )
+                )
         return super().unlink()
