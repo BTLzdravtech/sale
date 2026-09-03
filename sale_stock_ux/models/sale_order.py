@@ -36,18 +36,24 @@ class SaleOrder(models.Model):
             order.with_returns = any(line.quantity_returned for line in order.order_line)
 
     def action_cancel(self):
-        self = self.with_context(cancel_from_order=True)
-        for order in self.filtered(lambda order: order.picking_ids.filtered(lambda x: x.state == "done")):
+        ar_orders = self.filtered(lambda order: order.company_id.country_code == "AR")
+        for order in ar_orders.filtered(
+            lambda order: order.picking_ids.filtered(lambda picking: picking.state == "done")
+        ):
             raise UserError(
                 _("Unable to cancel sale order %s as some deliveries" " have already been done.") % (order.name)
             )
-        return super().action_cancel()
+        if ar_orders:
+            super(SaleOrder, ar_orders.with_context(cancel_from_order=True)).action_cancel()
+        if other_orders := self - ar_orders:
+            super(SaleOrder, other_orders).action_cancel()
+        return True
 
     @api.depends("picking_ids", "picking_ids.state", "force_delivery_status")
     def _compute_delivery_status(self):
         super()._compute_delivery_status()
-        for order in self:
-            if not order.picking_ids or all(p.state == "cancel" for p in order.picking_ids):
+        for order in self.filtered(lambda order: order.company_id.country_code == "AR"):
+            if not order.picking_ids or all(picking.state == "cancel" for picking in order.picking_ids):
                 order.delivery_status = "no"
                 continue
             if order.force_delivery_status:
@@ -55,13 +61,16 @@ class SaleOrder(models.Model):
                 continue
 
     def write(self, vals):
-        self.check_force_delivery_status(vals)
+        self.filtered(lambda order: order.company_id.country_code == "AR").check_force_delivery_status(vals)
         return super().write(vals)
 
     @api.model_create_multi
     def create(self, vals_list):
+        companies = self.env["res.company"].browse([vals["company_id"] for vals in vals_list if vals.get("company_id")])
         for vals in vals_list:
-            self.check_force_delivery_status(vals)
+            company = companies.filtered(lambda record: record.id == vals.get("company_id")) or self.env.company
+            if company.country_code == "AR":
+                self.check_force_delivery_status(vals)
         return super().create(vals_list)
 
     @api.model
@@ -76,4 +85,7 @@ class SaleOrder(models.Model):
                 raise UserError(_('Only users with "%s" can Set Delivered manually') % (group.name))
 
     def _get_protected_fields(self):
-        return super()._get_protected_fields() + ["picking_policy", "warehouse_id"]
+        protected_fields = super()._get_protected_fields()
+        if self.env.company.country_code == "AR":
+            protected_fields += ["picking_policy", "warehouse_id"]
+        return protected_fields
