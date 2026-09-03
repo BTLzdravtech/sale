@@ -19,7 +19,7 @@
 ##############################################################################
 {
     "name": "Portal Distributor Sale",
-    "version": "19.0.1.5.0",
+    "version": "19.0.1.6.0",
     "category": "Tools",
     "complexity": "easy",
     "author": "ADHOC SA, Odoo Community Association (OCA)",
@@ -39,6 +39,7 @@
     ],
     "data": [
         "security/portal_sale_distributor_security.xml",
+        "security/res_partner_security.xml",
         "security/ir.model.access.csv",
         "views/portal_my_account_views.xml",
         "views/portal_sale_views.xml",

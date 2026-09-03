@@ -17,21 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-{
-    "name": "Portal Distributor Loyalty",
-    "version": "19.0.1.1.0",
-    "category": "Tools",
-    "complexity": "easy",
-    "author": "ADHOC SA",
-    "website": "www.adhoc.inc",
-    "license": "AGPL-3",
-    "depends": [
-        "loyalty",
-        "portal_sale_distributor",
-    ],
-    "data": [
-        "security/ir.model.access.csv",
-    ],
-    "installable": True,
-    "auto_install": True,
-}
+from . import models

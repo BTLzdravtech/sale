@@ -18,7 +18,7 @@
 #
 ##############################################################################
 {
-    "name": "Portal Distributor Loyalty",
+    "name": "Portal Distributor Sale Project",
     "version": "19.0.1.1.0",
     "category": "Tools",
     "complexity": "easy",
@@ -26,7 +26,7 @@
     "website": "www.adhoc.inc",
     "license": "AGPL-3",
     "depends": [
-        "loyalty",
+        "sale_project",
         "portal_sale_distributor",
     ],
     "data": [
