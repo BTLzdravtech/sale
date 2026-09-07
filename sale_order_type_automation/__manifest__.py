@@ -19,7 +19,7 @@
 ##############################################################################
 {
     "name": "Sale Order Type Automation",
-    "version": "19.0.2.3.0",
+    "version": "19.0.2.4.0",
     "author": "ADHOC SA",
     "website": "www.adhoc.com.ar",
     "license": "AGPL-3",
@@ -33,6 +33,7 @@
         "demo/sale_order_type_demo.xml",
     ],
     "data": [
+        "data/sale_order_type_automation_data.xml",
         "views/sale_order_type_views.xml",
     ],
     "installable": True,

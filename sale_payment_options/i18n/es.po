@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 19:53+0000\n"
+"POT-Creation-Date: 2026-07-31 13:36+0000\n"
 "PO-Revision-Date: 2025-12-13 16:10+0000\n"
 "Last-Translator: Nicolas Col <nco@adhoc.inc>\n"
 "Language-Team: Spanish <https://translation.dev-adhoc.com/projects/sale-19-0/"
@@ -28,13 +28,10 @@ msgid "% OV"
 msgstr "% OV"
 
 #. module: sale_payment_options
-#: model:ir.actions.report,print_report_name:sale_payment_options.action_report_saleorder_payment_options
-msgid ""
-"(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or "
-"'Order - %s' % (object.name)"
-msgstr ""
-"(object.state in ('draft', 'sent') and 'Presupuesto - %s' % (object.name)) "
-"or 'Pedido - %s' % (object.name)"
+#. odoo-python
+#: code:addons/sale_payment_options/models/sale_order_line.py:0
+msgid "%(installment_qty)s installments of %(amount)s"
+msgstr "%(installment_qty)s cuotas de %(amount)s"
 
 #. module: sale_payment_options
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_template__active
@@ -51,6 +48,16 @@ msgstr "Agregar opción de pago"
 #: model_terms:ir.ui.view,arch_db:sale_payment_options.view_sale_payment_option_wizard_form
 msgid "Cancel"
 msgstr "Cancelar"
+
+#. module: sale_payment_options
+#: model:ir.model,name:sale_payment_options.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: sale_payment_options
+#: model:ir.model,name:sale_payment_options.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
 
 #. module: sale_payment_options
 #: model_terms:ir.ui.view,arch_db:sale_payment_options.view_sale_payment_option_wizard_form
@@ -96,7 +103,21 @@ msgid "Details"
 msgstr "Detalles"
 
 #. module: sale_payment_options
+#: model:ir.model.fields,field_description:sale_payment_options.field_res_company__sale_payment_options_by_line
+#: model:ir.model.fields,field_description:sale_payment_options.field_res_config_settings__sale_payment_options_by_line
+msgid "Discriminate Payment Options by Sale Line"
+msgstr "Discriminar opciones de pago por línea de venta"
+
+#. module: sale_payment_options
+#: model_terms:ir.ui.view,arch_db:sale_payment_options.res_config_settings_view_form
+msgid "Discriminate by sale order line"
+msgstr "Discriminar por línea de venta"
+
+#. module: sale_payment_options
+#: model:ir.model.fields,field_description:sale_payment_options.field_res_company__display_name
+#: model:ir.model.fields,field_description:sale_payment_options.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_order__display_name
+#: model:ir.model.fields,field_description:sale_payment_options.field_sale_order_line__display_name
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option__display_name
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_template__display_name
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_wizard__display_name
@@ -119,7 +140,10 @@ msgstr ""
 "ejemplo, el formato para el recargo de un 6% se aplica con el valor 1.06."
 
 #. module: sale_payment_options
+#: model:ir.model.fields,field_description:sale_payment_options.field_res_company__id
+#: model:ir.model.fields,field_description:sale_payment_options.field_res_config_settings__id
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_order__id
+#: model:ir.model.fields,field_description:sale_payment_options.field_sale_order_line__id
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option__id
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_template__id
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_wizard__id
@@ -228,14 +252,24 @@ msgid "Payment Options"
 msgstr "Opciones de pago"
 
 #. module: sale_payment_options
+#: model_terms:ir.ui.view,arch_db:sale_payment_options.res_config_settings_view_form
+msgid "Payment Options Display"
+msgstr "Visualización de opciones de pago"
+
+#. module: sale_payment_options
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_wizard_line__percentage
 msgid "Percentage"
 msgstr "Porcentaje"
 
 #. module: sale_payment_options
-#: model:ir.actions.report,name:sale_payment_options.action_report_saleorder_payment_options
-msgid "Quotation / Order (Payment Options)"
-msgstr "Presupuesto / Pedido (Opciones de pago)"
+#: model:ir.model.fields,help:sale_payment_options.field_res_company__sale_payment_options_by_line
+#: model:ir.model.fields,help:sale_payment_options.field_res_config_settings__sale_payment_options_by_line
+msgid ""
+"Print the installment amounts under each sale order line instead of the "
+"payment options table of the whole order."
+msgstr ""
+"Imprime los importes de las cuotas debajo de cada línea del pedido de venta "
+"en lugar de la tabla de opciones de pago de toda la orden."
 
 #. module: sale_payment_options
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option__sale_order_id
@@ -267,6 +301,11 @@ msgstr "Línea de asistente de opción de pago de venta"
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option_wizard__sale_order_id
 msgid "Sales Order"
 msgstr "Pedido de venta"
+
+#. module: sale_payment_options
+#: model:ir.model,name:sale_payment_options.model_sale_order_line
+msgid "Sales Order Line"
+msgstr "Línea de pedido de venta"
 
 #. module: sale_payment_options
 #: model:ir.model.fields,field_description:sale_payment_options.field_sale_payment_option__sequence
