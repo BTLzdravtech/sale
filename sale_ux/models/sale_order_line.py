@@ -49,6 +49,7 @@ class SaleOrderLine(models.Model):
             raise ValidationError(_("You cannot add lines to blocked sale orders."))
         return lines
 
+    @api.depends("product_id", "product_uom_id", "product_uom_qty")
     def _compute_discount(self):
         lines = self.filtered(
             lambda line: line.order_id.country_code == "AR"

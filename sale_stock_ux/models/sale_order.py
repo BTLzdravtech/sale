@@ -43,11 +43,14 @@ class SaleOrder(models.Model):
             raise UserError(
                 _("Unable to cancel sale order %s as some deliveries" " have already been done.") % (order.name)
             )
+        result = True
         if ar_orders:
-            super(SaleOrder, ar_orders.with_context(cancel_from_order=True)).action_cancel()
+            result = super(SaleOrder, ar_orders.with_context(cancel_from_order=True)).action_cancel()
         if other_orders := self - ar_orders:
-            super(SaleOrder, other_orders).action_cancel()
-        return True
+            other_result = super(SaleOrder, other_orders).action_cancel()
+            if result in (True, None):
+                result = other_result
+        return result
 
     @api.depends("picking_ids", "picking_ids.state", "force_delivery_status")
     def _compute_delivery_status(self):

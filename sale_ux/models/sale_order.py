@@ -109,7 +109,7 @@ class SaleOrder(models.Model):
     def action_cancel(self):
         ar_orders = self.filtered(lambda order: order._is_argentine_company())
         other_orders = self - ar_orders
-        result = super(SaleOrder, other_orders).action_cancel() if other_orders else None
+        result = super(SaleOrder, other_orders).action_cancel() if other_orders else True
         for order in ar_orders:
             invoice_lines = (
                 order.sudo().env["account.move.line"].search([("sale_line_ids", "in", order.order_line.ids)])
@@ -133,9 +133,11 @@ class SaleOrder(models.Model):
                     _("Unable to cancel this sale order. You must first cancel related bills and pickings.")
                 )
             if order.locked:
-                result = order._action_cancel()
+                order_result = order._action_cancel()
             else:
-                result = super(SaleOrder, order).action_cancel()
+                order_result = super(SaleOrder, order).action_cancel()
+            if result in (True, None):
+                result = order_result
         return result
 
     @api.constrains("force_invoiced_status")
