@@ -28,7 +28,7 @@ class SaleOrderLine(models.Model):
             # solo seteamos facturado si en sale o done
             if line.order_id.state not in ["sale", "done"]:
                 continue
-            if line.order_id.force_invoiced_status:
+            if line.order_id.country_code == "AR" and line.order_id.force_invoiced_status:
                 line.invoice_status = line.order_id.force_invoiced_status
 
     def action_sale_history(self):
@@ -45,41 +45,45 @@ class SaleOrderLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         lines = super().create(vals_list)
-        if lines.filtered(lambda x: x.order_id and x.order_id.state == "done"):
+        if lines.filtered(lambda line: line.order_id.country_code == "AR" and line.order_id.state == "done"):
             raise ValidationError(_("You cannot add lines to blocked sale orders."))
         return lines
 
-    def _get_protected_fields(self):
-        return super()._get_protected_fields() + ["discount"]
-
+    @api.depends("product_id", "product_uom_id", "product_uom_qty")
     def _compute_discount(self):
         lines = self.filtered(
-            lambda x: x.order_id.state == "sale"
-            and not (x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
+            lambda line: line.order_id.country_code == "AR"
+            and line.order_id.state == "sale"
+            and not (line.order_id.pricelist_id and line.pricelist_item_id._show_discount())
         )
         super(SaleOrderLine, self - lines)._compute_discount()
 
     def _compute_product_uom_id(self):
-        """Override to respect only_packagings configuration"""
-        for line in self:
-            if line.product_id.product_tmpl_id.only_packagings and line.product_id.uom_ids:
-                if line.product_uom_id and line.product_uom_id in line.product_id.uom_ids:
-                    continue
+        """Override to respect only_packagings configuration."""
+        packaging_lines = self.filtered(
+            lambda line: line.order_id.country_code == "AR"
+            and line.product_id.product_tmpl_id.only_packagings
+            and line.product_id.uom_ids
+        )
+        for line in packaging_lines:
+            if not line.product_uom_id or line.product_uom_id not in line.product_id.uom_ids:
                 line.product_uom_id = line.product_id.uom_ids[0]
-            else:
-                super()._compute_product_uom_id()
+        super(SaleOrderLine, self - packaging_lines)._compute_product_uom_id()
 
     @api.depends("product_template_id.only_packagings")
     def _compute_allowed_uom_ids(self):
-        lines = self.filtered(lambda x: x.product_id.product_tmpl_id.only_packagings)
-        for line in lines:
+        packaging_lines = self.filtered(
+            lambda line: line.order_id.country_code == "AR" and line.product_id.product_tmpl_id.only_packagings
+        )
+        for line in packaging_lines:
             line.allowed_uom_ids = line.product_id.uom_ids
-        super(SaleOrderLine, self - lines)._compute_allowed_uom_ids()
+        super(SaleOrderLine, self - packaging_lines)._compute_allowed_uom_ids()
 
     def _get_product_catalog_lines_data(self, **kwargs):
         res = super()._get_product_catalog_lines_data(**kwargs)
         if (
             len(self) == 1
+            and self.order_id.country_code == "AR"
             and self.product_id.product_tmpl_id.only_packagings
             and self.product_uom_id in self.product_id.uom_ids
         ):
