@@ -18,33 +18,18 @@
 #
 ##############################################################################
 {
-    "name": "Portal Distributor Sale",
-    "version": "18.0.1.11.0",
+    "name": "Portal Distributor Multi Store",
+    "version": "18.0.1.0.0",
     "category": "Tools",
     "complexity": "easy",
-    "author": "ADHOC SA, Odoo Community Association (OCA)",
+    "author": "ADHOC SA",
     "website": "www.adhoc.com.ar",
     "license": "AGPL-3",
     "depends": [
-        "sale_exception",
-        "price_security",
-        "delivery",
-        "sale_ux",
-        "sale_management",
-        "portal_backend",
-    ],
-    "demo": [
-        "demo/res_users_demo.xml",
-    ],
-    "data": [
-        "security/portal_sale_distributor_security.xml",
-        "security/ir.model.access.csv",
-        "views/portal_my_account_views.xml",
-        "views/portal_sale_views.xml",
-        "views/product_product_views.xml",
-        "views/sale_report_templates.xml",
-        "views/product_template_views.xml",
+        "portal_sale_distributor",
+        "sale_stock",
+        "stock_multi_store",
     ],
     "installable": True,
-    "auto_install": False,
+    "auto_install": True,
 }
