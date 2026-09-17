@@ -1,6 +1,6 @@
 {
     "name": "Point of Sale UX",
-    "version": "19.0.1.2.0",
+    "version": "19.0.1.3.0",
     "category": "Point of Sale",
     "author": "ADHOC SA",
     "depends": [
@@ -16,6 +16,6 @@
         ],
     },
     "installable": True,
-    "auto_install": False,
+    "auto_install": True,
     "license": "LGPL-3",
 }
