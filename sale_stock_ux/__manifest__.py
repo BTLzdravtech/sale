@@ -19,7 +19,7 @@
 ##############################################################################
 {
     "name": "Sale Stock UX",
-    "version": "19.0.1.4.0",
+    "version": "19.0.1.4.3",
     "category": "Sales",
     "sequence": 14,
     "summary": "",
@@ -54,6 +54,6 @@
     "demo": [],
     "test": [],
     "installable": True,
-    "auto_install": True,
+    "auto_install": False,
     "application": False,
 }

@@ -53,21 +53,29 @@ class SaleOrderLine(models.Model):
 
     def _create_procurements(self, product_qty, procurement_uom, values):
         self.ensure_one()
-        # cancelar remanente seta la cantidad como entregada menos devuelta
-        # asi que no deberia restar en ese caso
-        # Para suscripciones: NO restar quantity_returned (ya está en qty_delivered)
-        if not self._check_is_recurring_invoice():
-            product_qty = product_qty - self.quantity_returned
+        if self.order_id.company_id.country_code == "AR" and not self._check_is_recurring_invoice():
+            product_qty -= self.quantity_returned
         return super()._create_procurements(product_qty, procurement_uom, values)
 
-    @api.depends("product_id", "product_uom_qty")
+    @api.depends("product_id", "order_id.warehouse_id")
     def _compute_total_reserved_quantity(self):
-        for line in self:
-            loc_id = line.order_id.warehouse_id.lot_stock_id.id
-            stock_quants = self.env["stock.quant"].search(
-                [("product_id", "=", line.product_id.id), ("location_id", "child_of", loc_id)]
-            )
-            line.total_reserved_quantity = sum(stock_quants.mapped("reserved_quantity"))
+        self.total_reserved_quantity = 0.0
+        quants = self.env["stock.quant"]
+        for warehouse in self.mapped("order_id.warehouse_id").filtered("lot_stock_id"):
+            lines = self.filtered(lambda line: line.order_id.warehouse_id == warehouse and line.product_id)
+            reserved_quantities = {
+                product.id: quantity
+                for product, quantity in quants._read_group(
+                    [
+                        ("product_id", "in", lines.product_id.ids),
+                        ("location_id", "child_of", warehouse.lot_stock_id.id),
+                    ],
+                    ["product_id"],
+                    ["reserved_quantity:sum"],
+                )
+            }
+            for line in lines:
+                line.total_reserved_quantity = reserved_quantities.get(line.product_id.id, 0.0)
 
     @api.depends("qty_delivered", "quantity_returned")
     def _compute_all_qty_delivered(self):
@@ -76,19 +84,21 @@ class SaleOrderLine(models.Model):
 
     def _get_qty_procurement(self, previous_product_uom_qty=False):
         qty = super()._get_qty_procurement(previous_product_uom_qty=previous_product_uom_qty)
+        if self.order_id.company_id.country_code != "AR":
+            return qty
         outgoing_moves, incoming_moves = self._get_outgoing_incoming_moves(strict=False)
-        for move in outgoing_moves.filtered(lambda m: m.is_exchange_move):
+        for move in outgoing_moves.filtered(lambda move: move.is_exchange_move):
             qty_to_compute = move.quantity if move.state == "done" else move.product_uom_qty
             qty -= move.product_uom._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method="HALF-UP")
-        for move in incoming_moves.filtered(lambda m: m.is_exchange_move):
+        for move in incoming_moves.filtered(lambda move: move.is_exchange_move):
             qty_to_compute = move.quantity if move.state == "done" else move.product_uom_qty
             qty += move.product_uom._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method="HALF-UP")
         return qty
 
-    @api.depends()
+    @api.depends("move_ids.state", "move_ids.location_dest_usage", "move_ids.quantity", "move_ids.product_uom")
     def _compute_qty_delivered(self):
         super()._compute_qty_delivered()
-        for line in self:
+        for line in self.filtered(lambda line: line.order_id.company_id.country_code == "AR"):
             if line.qty_delivered_method == "stock_move":
                 outgoing_moves, incoming_moves = line._get_outgoing_incoming_moves()
                 for move in outgoing_moves.filtered(lambda m: m.is_exchange_move and m.state == "done"):
@@ -279,7 +289,7 @@ class SaleOrderLine(models.Model):
                             quantity_returned = 0.0
             order_line.quantity_returned = quantity_returned
 
-    @api.depends("quantity_returned")
+    @api.depends("qty_invoiced", "qty_delivered", "product_uom_qty", "state", "quantity_returned")
     def _compute_qty_to_invoice(self):
         """
         Modificamos la funcion original para que si el producto es segun lo
@@ -290,20 +300,25 @@ class SaleOrderLine(models.Model):
         termina facturando
         """
         super()._compute_qty_to_invoice()
-        for line in self:
-            # igual que por defecto, si no en estos estados, no hay a facturar
+        for line in self.filtered(lambda line: line.order_id.company_id.country_code == "AR"):
             if line.order_id.state not in ["sale", "done"]:
                 continue
             if line.product_id.invoice_policy == "order":
                 line.qty_to_invoice = line.product_uom_qty - line.quantity_returned - line.qty_invoiced
 
     @api.depends(
-        "order_id.force_invoiced_status", "state", "product_uom_qty", "qty_delivered", "qty_to_invoice", "qty_invoiced"
+        "state",
+        "product_uom_qty",
+        "qty_delivered",
+        "qty_to_invoice",
+        "qty_invoiced",
+        "quantity_returned",
+        "order_id.force_invoiced_status",
     )
     def _compute_invoice_status(self):
         super()._compute_invoice_status()
         precision = self.env["decimal.precision"].precision_get("Product Unit of Measure")
-        for line in self:
+        for line in self.filtered(lambda line: line.order_id.company_id.country_code == "AR"):
             if not line.order_id.force_invoiced_status:
                 if not float_is_zero(line.qty_to_invoice, precision_digits=precision):
                     line.invoice_status = "to invoice"
@@ -331,23 +346,21 @@ class SaleOrderLine(models.Model):
                 line.stock_by_location = ""
                 continue
 
-            stock_quants = self.env["stock.quant"].read_group(
-                domain=[
+            stock_quants = self.env["stock.quant"]._read_group(
+                [
                     ("location_id.usage", "=", "internal"),
                     ("location_id.show_stock_on_products", "=", True),
                     ("product_id", "=", line.product_id.id),
                     ("quantity", ">", 0),
                 ],
-                fields=["location_id", "available_quantity:sum"],
-                groupby=["location_id"],
-                lazy=False,
+                ["location_id"],
+                ["available_quantity:sum"],
             )
 
             stock_lines = []
 
-            for stock in stock_quants:
-                location_name = stock["location_id"][1]
-                free_qty = stock["available_quantity"]
+            for location, free_qty in stock_quants:
+                location_name = location.display_name
 
                 if free_qty > 0:
                     if line.product_uom_id and line.product_uom_id != line.product_id.uom_id:
@@ -360,7 +373,7 @@ class SaleOrderLine(models.Model):
         (self - self).stock_by_location = ""
 
     def _get_protected_fields(self):
-        """Override to allow modifications when skip_locked_order_line_check context is set."""
-        if self.env.context.get("skip_locked_order_line_check"):
+        """Allow the Argentine cancellation flow to update locked lines."""
+        if self.env.context.get("skip_locked_order_line_check") and self.env.company.country_code == "AR":
             return []
         return super()._get_protected_fields()
