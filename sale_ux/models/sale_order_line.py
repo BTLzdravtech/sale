@@ -79,6 +79,12 @@ class SaleOrderLine(models.Model):
             line.allowed_uom_ids = line.product_id.uom_ids
         super(SaleOrderLine, self - packaging_lines)._compute_allowed_uom_ids()
 
+    def _get_protected_fields(self):
+        fields = super()._get_protected_fields()
+        if self.order_id.country_code == "AR":
+            fields += ["discount"]
+        return fields
+
     def _get_product_catalog_lines_data(self, **kwargs):
         res = super()._get_product_catalog_lines_data(**kwargs)
         if (
