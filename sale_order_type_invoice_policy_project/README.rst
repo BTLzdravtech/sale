@@ -4,47 +4,47 @@
    :alt: ADHOC SA
    :target: https://www.adhoc.com.ar
 
-.. |icon| image:: https://raw.githubusercontent.com/ingadhoc/maintainer-tools/master/resources/adhoc-icon.png
+.. |company_icon| image:: https://raw.githubusercontent.com/ingadhoc/maintainer-tools/master/resources/adhoc-icon.png
 
 .. image:: https://img.shields.io/badge/license-AGPL--3-blue.png
    :target: https://www.gnu.org/licenses/agpl
    :alt: License: AGPL-3
 
-=====================
-Sale Exception Compat
-=====================
+========================================
+Sale Order Type Invoicing Policy Project
+========================================
 
-Keeps the confirmation flow that `sale_exception` had before
-OCA/server-tools#3590: the exceptions are detected before any other module
-overrides `action_confirm`, and a sales order that matches a rule rolls back
-everything the confirmation did and shows the popup.
+Bridge between "Sale Order Type Invoicing Policy" and "sale_project".
 
-The replacement of `detect_exceptions()` itself lives in `base_exception_compat`,
-because it is defined on the abstract model every exception module inherits
-from and it also covers `stock_exception` and any other one. This module only
-keeps what is specific to sales.
+Adds the "Exclude prepaid services" option to the sale order type. When the type
+uses the "Delivered quantities" invoicing policy and this option is on, service
+products with an "ordered_prepaid" service policy are invoiced by ordered
+quantity instead of delivered quantity.
+
+The option lives here because ``service_policy`` is defined by ``sale_project``:
+without that module the field does not exist and the invoicing policy cannot
+take it into account.
 
 Installation
 ============
 
 To install this module, you need to:
 
-#. Only need to install the module. It is auto installed with `sale_exception`.
+#. Only need to install the module. It is installed automatically when both
+   "Sale Order Type Invoicing Policy" and "sale_project" are present.
 
 Configuration
 =============
 
 To configure this module, you need to:
 
-#. Nothing to configure.
+#. Go to the sale order type, set the invoicing policy to "Delivered
+   quantities" and check "Exclude prepaid services"
 
 Usage
 =====
 
 To use this module, you need to:
-
-#. Confirm a sales order that matches an exception rule: the exception popup
-   shows up and everything the confirmation did is rolled back.
 
 .. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
    :alt: Try me on Runbot
@@ -64,7 +64,7 @@ Credits
 Images
 ------
 
-* |company| |icon|
+* |company| |company_icon|
 
 Contributors
 ------------
