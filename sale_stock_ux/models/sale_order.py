@@ -69,7 +69,8 @@ class SaleOrder(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        companies = self.env["res.company"].browse([vals["company_id"] for vals in vals_list if vals.get("company_id")])
+        company_ids = {vals["company_id"] for vals in vals_list if vals.get("company_id")}
+        companies = self.env["res.company"].browse(list(company_ids))
         for vals in vals_list:
             company = companies.filtered(lambda record: record.id == vals.get("company_id")) or self.env.company
             if company.country_code == "AR":
