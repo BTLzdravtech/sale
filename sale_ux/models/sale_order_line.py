@@ -51,6 +51,8 @@ class SaleOrderLine(models.Model):
 
     @api.depends("product_id", "product_uom_id", "product_uom_qty")
     def _compute_discount(self):
+        if "discount1" in self._fields:
+            return super()._compute_discount()
         lines = self.filtered(
             lambda line: line.order_id.country_code == "AR"
             and line.order_id.state == "sale"

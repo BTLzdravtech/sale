@@ -28,8 +28,14 @@ class SaleOrder(models.Model):
         "coupon_point_ids",
     )
     def _compute_loyalty_rewards_banner_visible(self):
+        # The banner is a salesperson tool, and looking for claimable rewards ends up reading the
+        # company contact (_get_program_timezone), which portal users can not read. Computing it
+        # for them raises an AccessError that keeps the sale order form from opening.
+        is_internal_user = self.env.user.has_group("base.group_user")
         for order in self:
             order.loyalty_rewards_banner_visible = False
+            if not is_internal_user:
+                continue
             if order.state not in ("draft", "sent"):
                 continue
             if order.order_line.filtered("is_reward_line"):
@@ -43,5 +49,12 @@ class SaleOrder(models.Model):
             domain = r._get_valid_sale_order()
             if not res[r].get("error") and domain:
                 if self not in self.env["sale.order"].search(domain):
-                    res[r] = {"error": "SaleOrder not matching"}
+                    res[r] = {
+                        "error": r.not_applicable_message
+                        or self.env._(
+                            "This promotion cannot be applied because this sales order does not meet"
+                            ' the conditions required by the program "%(program)s".',
+                            program=r.name,
+                        )
+                    }
         return res

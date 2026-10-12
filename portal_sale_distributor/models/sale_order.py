@@ -85,6 +85,10 @@ class SaleOrder(models.Model):
                 + arch.xpath("//label[@for='recurrence_id']")
                 + arch.xpath("//field[@name='recurrence_id']")
                 + arch.xpath("//button[@name='update_date_prices_and_validity']")
+                # its invisible modifier reads project_ids, and computing that field searches
+                # projects by reinvoiced_sale_order_id, restricted to salesmen. Hiding the button
+                # drops the modifier, so the field is no longer added to the view nor read.
+                + arch.xpath("//button[@name='action_view_milestone']")
             )
             for node in invisible_fields:
                 node.set("invisible", "1")
@@ -103,3 +107,11 @@ class SaleOrder(models.Model):
     def action_update_prices(self):
         self = self.sudo()
         super().action_update_prices()
+
+    def _message_get_suggested_recipients_batch(self, **kwargs):
+        # to keep odoobot out of the suggestions, mail reads base.partner_root.email_normalized
+        # without sudo, and a portal user can not read that contact: the chatter fails to load
+        # right after the distributor confirms the order. They do not add recipients anyway.
+        if not self.env.user.has_group("base.group_user"):
+            return {record.id: [] for record in self}
+        return super()._message_get_suggested_recipients_batch(**kwargs)
