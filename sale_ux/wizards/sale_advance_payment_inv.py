@@ -19,7 +19,7 @@ class SaleAdvancePaymentInvWizard(models.TransientModel):
     tax_ids = fields.Many2many(
         string="Taxes",
         comodel_name="account.tax",
-        domain="[('type_tax_use', '=', 'sale')",
+        domain="[('type_tax_use', '=', 'sale')]",
     )
 
     @api.onchange("amount_total", "tax_ids")
