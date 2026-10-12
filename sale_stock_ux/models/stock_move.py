@@ -28,11 +28,15 @@ class StockMove(models.Model):
         TODO: Solo deberia impactar en movimientos de salida (uno o mas pasos)
         """
         for vals in vals_list:
-            if vals.get("sale_line_id"):
-                sale_line_qty_ret = self.env["sale.order.line"].browse(vals["sale_line_id"]).quantity_returned
-                vals["product_uom_qty"] -= sale_line_qty_ret
-                if "secondary_uom_qty" in vals:
-                    del vals["secondary_uom_qty"]
+            sale_line_id = vals.get("sale_line_id")
+            sale_line = self.env["sale.order.line"].browse(sale_line_id)
+            if (
+                sale_line_id
+                and sale_line.order_id.company_id.country_code == "AR"
+                and vals.get("product_uom_qty") is not None
+            ):
+                vals["product_uom_qty"] -= sale_line.quantity_returned
+                vals.pop("secondary_uom_qty", None)
 
         return super().create(vals_list)
 
