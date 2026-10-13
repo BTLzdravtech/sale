@@ -16,6 +16,10 @@ class StockReturnPicking(models.TransientModel):
         return vals
 
     def action_create_exchanges(self):
+        # AR lock: stock_account defaults to_refund=True, thus non-AR companies would be blocked from exchanges.
+        if self.company_id and self.company_id.country_code != "AR":
+            return super().action_create_exchanges()
+
         if any(self.product_return_moves.mapped("to_refund")):
             raise UserError(_("You cannot create exchanges for return lines marked to refund."))
         return super(StockReturnPicking, self.with_context(is_exchange_move=True)).action_create_exchanges()
