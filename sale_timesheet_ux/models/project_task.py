@@ -5,8 +5,16 @@ class ProjectTask(models.Model):
     _inherit = "project.task"
 
     order_id = fields.Many2one(
-        "sale.order", "Related Sales Order", store=True, help="Sales order to which the task is linked."
+        "sale.order",
+        "Related Sales Order",
+        store=True,
+        index="btree_not_null",
+        help="Sales order to which the task is linked.",
     )
+
+    @property
+    def SELF_READABLE_FIELDS(self):
+        return super().SELF_READABLE_FIELDS | {"order_id"}
 
     def _get_timesheet(self):
         recs = super()._get_timesheet()
