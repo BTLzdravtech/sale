@@ -3,7 +3,6 @@
 # directory
 ##############################################################################
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
 
 
 class SaleOrderLine(models.Model):
@@ -42,13 +41,6 @@ class SaleOrderLine(models.Model):
         }
         return action
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        lines = super().create(vals_list)
-        if lines.filtered(lambda x: x.order_id and x.order_id.state == "done"):
-            raise ValidationError(_("You cannot add lines to blocked sale orders."))
-        return lines
-
     def _get_protected_fields(self):
         return super()._get_protected_fields() + ["discount"]
 
@@ -58,6 +50,25 @@ class SaleOrderLine(models.Model):
             and not (x.order_id.pricelist_id and x.pricelist_item_id._show_discount())
         )
         super(SaleOrderLine, self - lines)._compute_discount()
+
+    @api.depends("invoice_lines.amount_currency")
+    def _compute_qty_invoiced(self):
+        super()._compute_qty_invoiced()
+        # Odoo sums the company-currency balance, which does not net to zero when the down payment
+        # was invoiced and deducted at different rates: check it in the order currency instead.
+        for line in self.filtered("is_downpayment"):
+            amount = 0.0
+            for invoice_line in line._get_invoice_lines():
+                move = invoice_line.move_id
+                if move.state == "cancel" and move.payment_state != "invoicing_legacy":
+                    continue
+                amount += invoice_line.currency_id._convert(
+                    invoice_line.amount_currency,
+                    line.currency_id,
+                    invoice_line.company_id,
+                    move.invoice_date or move.date or fields.Date.context_today(line),
+                )
+            line.qty_invoiced = 0 if line.currency_id.is_zero(amount) else 1
 
     def _get_downpayment_line_price_unit(self, invoices):
         total = super()._get_downpayment_line_price_unit(invoices)
