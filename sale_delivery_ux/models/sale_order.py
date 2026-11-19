@@ -17,6 +17,6 @@ class SaleOrder(models.Model):
         as delivered so you dont need to set it manually
         """
         sol = super()._create_delivery_line(carrier, price_unit)
-        if not price_unit:
+        if not price_unit and self.company_id.country_code == "AR":
             sol.with_context(skip_validation="product_uom_qty").write({"product_uom_qty": 0.0})
         return sol

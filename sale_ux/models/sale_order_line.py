@@ -83,7 +83,7 @@ class SaleOrderLine(models.Model):
 
     def _get_protected_fields(self):
         fields = super()._get_protected_fields()
-        if self.order_id.country_code == "AR":
+        if any(line.order_id.country_code == "AR" for line in self):
             fields += ["discount"]
         return fields
 
