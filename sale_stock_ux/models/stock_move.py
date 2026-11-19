@@ -46,7 +46,7 @@ class StockMove(models.Model):
         """
         res = super()._get_new_picking_values()
         values = {}
-        sale = self.mapped("sale_line_id.order_id")
+        sale = self.sale_line_id.order_id.filtered(lambda order: order.company_id.country_code == "AR")[:1]
         propagate_internal_notes = (
             self.env["ir.config_parameter"].sudo().get_param("sale.propagate_internal_notes") == "True"
         )

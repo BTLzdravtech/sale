@@ -189,7 +189,8 @@ class SaleOrderLine(models.Model):
         else:
             product_uom_qty_origin = 0
         if (
-            self.state == "sale"
+            self.order_id.company_id.country_code == "AR"
+            and self.state == "sale"
             and self.product_id.type in ["product", "consu"]
             and self.product_uom_qty < product_uom_qty_origin
         ):
