@@ -36,7 +36,9 @@ class SaleOrder(models.Model):
                 "relativedelta": safe_eval_dateutil.relativedelta.relativedelta,
             }
             skip_validation = False
-            if rec.type_id.sale_order_filter_domain:
+            # the filters only decide when the invoice is posted right here
+            validates_here = rec.type_id.invoicing_atomation == "validate_invoice" and not rec.type_id.background_post
+            if validates_here and rec.type_id.sale_order_filter_domain:
                 so_domain = safe_eval(
                     rec.type_id.sale_order_filter_domain,
                     eval_ctx,
@@ -74,16 +76,15 @@ class SaleOrder(models.Model):
                 else:
                     invoices_to_validate = invoices
                     invoices_not_validated = rec.env["account.move"]
-                if not invoices_to_validate:
-                    continue
-                if rec.env.context.get("background_post_defer"):
-                    invoices_to_validate = invoices_to_validate.with_context(force_background_post=True)
-                try:
-                    invoices_to_validate.sudo().action_post()
-                except Exception as error:
-                    rec._handle_invoicing_automation_error(invoices, error)
-                else:
-                    rec._log_background_post_defer(invoices_to_validate)
+                if invoices_to_validate:
+                    if rec.env.context.get("background_post_defer"):
+                        invoices_to_validate = invoices_to_validate.with_context(force_background_post=True)
+                    try:
+                        invoices_to_validate.sudo().action_post()
+                    except Exception as error:
+                        rec._handle_invoicing_automation_error(invoices, error)
+                    else:
+                        rec._log_background_post_defer(invoices_to_validate)
                 # Post message for invoices that were not validated due to domain filter
                 if invoices_not_validated:
                     domain_message = _(
