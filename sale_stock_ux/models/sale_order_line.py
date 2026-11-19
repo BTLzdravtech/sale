@@ -184,6 +184,8 @@ class SaleOrderLine(models.Model):
         https://github.com/odoo/odoo/commit/
         8fe7229e1984811f3456dbf502cb03fba879e180
         """
+        if self.order_id.company_id.country_code != "AR":
+            return
         if self._origin:
             product_uom_qty_origin = self._origin.read(["product_uom_qty"])[0]["product_uom_qty"]
         else:
